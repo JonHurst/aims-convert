@@ -28,6 +28,7 @@ class DStr(NamedTuple):
 
 
 RosterStream = list[Union[DStr, Break, dt.datetime]]
+DutyStream = list[Union[DStr, Break, dt.datetime]]
 Column = list[str]
 Line = list[str]
 
@@ -451,7 +452,7 @@ def crew(
 def duties(s: str) -> list[T.Duty]:
     lines_ = lines(s)
     bstream = basic_stream(extract_date(lines_), columns(lines_))
-    duty_streams = [[]]
+    duty_streams: list[DutyStream] = [[]]
     for e in duty_stream(bstream):
         if e == Break.DUTY:
             duty_streams.append([])
