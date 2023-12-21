@@ -11,16 +11,22 @@ class Test_basic_stream(unittest.TestCase):
     def test_standard_overnights(self):
         data = [
             [
-                'Oct21\nMon', 'EZS', '6245', '05:30', '06:34', 'BRS', 'FNC', '09:45', '(320)', '',
-                'EJU', '6246', '10:32', 'FNC', 'BRS', '13:59', '14:29', '(320)', '', '', '', '', '',
+                'Oct21\nMon', 'EZS', '6245', '05:30', '06:34', 'BRS',
+                'FNC', '09:45', '(320)', '',
+                'EJU', '6246', '10:32', 'FNC', 'BRS', '13:59', '14:29',
+                '(320)', '', '', '', '', '',
                 '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             [
-                'Oct22\nTue', 'G\xa0EJU', '6205', '04:15', '05:12', 'BRS', 'SPU', '07:56', '(320)', '',
-                '6206', '13:16', 'SPU', 'BRS', '15:50', '16:20', '(320)', 'FO', '', '', '', '',
+                'Oct22\nTue', 'G\xa0EJU', '6205', '04:15', '05:12',
+                'BRS', 'SPU', '07:56', '(320)', '',
+                '6206', '13:16', 'SPU', 'BRS', '15:50', '16:20',
+                '(320)', 'FO', '', '', '', '',
                 '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'M', ''],
             [
-                'Oct23\nWed', 'D/O', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']]
+                'Oct23\nWed', 'D/O', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
             p.DStr(date=datetime.date(2019, 10, 21), text='EZS'),
@@ -67,7 +73,6 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 10, 21), data),
             expected_result)
 
-
     def test_blank_column(self):
         data = [
             ['Oct31\nThu', 'D/O', '', '', '', '', '', '', '', '', '', '', '',
@@ -84,12 +89,12 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 10, 31), data),
             expected_result)
 
-
     def test_extra_codes(self):
         data = [
-            ['Sep11\nWed', 'l', '6189', '05:20', '06:46', 'BRS', 'PSA', '08:46', '', 'l',
-             '6190', '09:22', 'PSA', 'BRS', '11:49', '12:19', '', '', '', '', '', '', '',
-             '', '', '', '', '', '', '', '', '']]
+            ['Sep11\nWed', 'l', '6189', '05:20', '06:46', 'BRS', 'PSA',
+             '08:46', '', 'l',
+             '6190', '09:22', 'PSA', 'BRS', '11:49', '12:19', '', '', '',
+             '', '', '', '', '', '', '', '', '', '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
             p.DStr(date=datetime.date(2019, 9, 11), text='l'),
@@ -112,7 +117,6 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 9, 11), data),
             expected_result)
 
-
     def test_across_midnight(self):
         data = [
             [
@@ -120,8 +124,10 @@ class Test_basic_stream(unittest.TestCase):
                 '', '6046', '21:35', 'PMI', '', '', '', '', '', '', '', '', '',
                 '', '', '', '', '', '', '', '', '', '', '', ''],
             [
-                'May19\nSun', 'BRS', '23:55', '00:25', '', 'REST', '', '', '', '',
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                'May19\nSun', 'BRS', '23:55', '00:25', '',
+                'REST', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '',
                 '', '', '', '', ''],
 
             [
@@ -152,7 +158,6 @@ class Test_basic_stream(unittest.TestCase):
         self.assertEqual(
             p.basic_stream(datetime.date(2019, 5, 18), data),
             expected_result)
-
 
     def test_lpc(self):
         data = [
@@ -205,7 +210,6 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 10, 27), data),
             expected_result)
 
-
     def test_lpc_across_midnight(self):
         data = [
             [
@@ -238,15 +242,18 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 4, 28), data),
             expected_result)
 
-
     def test_dragover_case(self):
         data = [
             [
-                'May27\nSat', '6133', '14:55', '16:01', 'BRS', 'EFL', '19:23', '', '6134', '20:00', 'EFL',
-                '(320)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                'May27\nSat', '6133', '14:55', '16:01', 'BRS', 'EFL', '19:23',
+                '', '6134', '20:00', 'EFL',
+                '(320)', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', ''],
             [
-                'May28\nSun', 'BRS', '23:32', '00:02', '', 'TAXI', '13:15', '13:15', '*BRS', 'XWS', '16:45',
-                '', 'LOEV', '18:15', '22:15', '', 'TAXI', '23:15', '*XWS', 'MAN', '23:45', '23:45', '', '', '',
+                'May28\nSun', 'BRS', '23:32', '00:02', '', 'TAXI', '13:15',
+                '13:15', '*BRS', 'XWS', '16:45',
+                '', 'LOEV', '18:15', '22:15', '', 'TAXI', '23:15', '*XWS',
+                'MAN', '23:45', '23:45', '', '', '',
                 '', '', '', '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
@@ -263,7 +270,7 @@ class Test_basic_stream(unittest.TestCase):
             p.DStr(date=datetime.date(2017, 5, 27), text='(320)'),
             p.Break.COLUMN,
             p.DStr(date=datetime.date(2017, 5, 28), text='BRS'),
-            datetime.datetime(2017, 5, 27, 23, 32), #Tricksy bit
+            datetime.datetime(2017, 5, 27, 23, 32),  # Tricksy bit
             datetime.datetime(2017, 5, 28, 0, 2),
             p.Break.LINE,
             p.DStr(date=datetime.date(2017, 5, 28), text='TAXI'),
@@ -288,12 +295,13 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2017, 5, 27), data),
             expected_result)
 
-
     def test_2400_bug(self):
         data = [
             [
-                'May17\nFri', '6001', '16:50', '17:50', 'BRS', 'FAO', '20:25', '(320)', '',
-                '6002', '20:55', 'FAO', 'BRS', '23:30', '24:00', '(320)', '', '', '', '', '',
+                'May17\nFri', '6001', '16:50', '17:50', 'BRS', 'FAO', '20:25',
+                '(320)', '',
+                '6002', '20:55', 'FAO', 'BRS', '23:30', '24:00', '(320)', '',
+                '', '', '', '',
                 '', '', '', '', '', '', '', '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
@@ -310,13 +318,12 @@ class Test_basic_stream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 5, 17), text='FAO'),
             p.DStr(date=datetime.date(2019, 5, 17), text='BRS'),
             datetime.datetime(2019, 5, 17, 23, 30),
-            datetime.datetime(2019, 5, 18, 0, 0), #tricksy bit
+            datetime.datetime(2019, 5, 18, 0, 0),  # tricksy bit
             p.DStr(date=datetime.date(2019, 5, 17), text='(320)'),
             p.Break.COLUMN]
         self.assertEqual(
             p.basic_stream(datetime.date(2019, 5, 17), data),
             expected_result)
-
 
     def test_bad_input_formats(self):
         with self.assertRaises(AssertionError):
@@ -329,7 +336,6 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 1, 1), [1, 2])
         with self.assertRaises(AssertionError):
             p.basic_stream(datetime.date(2019, 1, 1), [["AAA", "BBB", 1]])
-
 
     def test_bad_time(self):
         """Bad times should be tagged as strings"""
@@ -352,23 +358,23 @@ class Test_basic_stream(unittest.TestCase):
             expected_result)
 
 
-
 class Test_duty(unittest.TestCase):
 
     def test_standard_trip(self):
-        data = [ p.DStr(datetime.date(2017, 10, 17), '6195'),
-                 datetime.datetime(2017, 10, 17, 4, 30),
-                 datetime.datetime(2017, 10, 17, 5, 40),
-                 p.DStr(datetime.date(2017, 10, 17), 'BRS'),
-                 p.DStr(datetime.date(2017, 10, 17), 'LPA'),
-                 datetime.datetime(2017, 10, 17, 10, 7),
-                 p.Break.LINE,
-                 p.DStr(datetime.date(2017, 10, 17), '6196'),
-                 datetime.datetime(2017, 10, 17, 11, 7),
-                 p.DStr(datetime.date(2017, 10, 17), 'LPA'),
-                 p.DStr(datetime.date(2017, 10, 17), 'BRS'),
-                 datetime.datetime(2017, 10, 17, 14, 48),
-                 datetime.datetime(2017, 10, 17, 15, 18) ]
+        data = [
+            p.DStr(datetime.date(2017, 10, 17), '6195'),
+            datetime.datetime(2017, 10, 17, 4, 30),
+            datetime.datetime(2017, 10, 17, 5, 40),
+            p.DStr(datetime.date(2017, 10, 17), 'BRS'),
+            p.DStr(datetime.date(2017, 10, 17), 'LPA'),
+            datetime.datetime(2017, 10, 17, 10, 7),
+            p.Break.LINE,
+            p.DStr(datetime.date(2017, 10, 17), '6196'),
+            datetime.datetime(2017, 10, 17, 11, 7),
+            p.DStr(datetime.date(2017, 10, 17), 'LPA'),
+            p.DStr(datetime.date(2017, 10, 17), 'BRS'),
+            datetime.datetime(2017, 10, 17, 14, 48),
+            datetime.datetime(2017, 10, 17, 15, 18)]
         expected_result = T.Duty(
             T.TripID('13804', ''),
             datetime.datetime(2017, 10, 17, 4, 30),
@@ -390,7 +396,6 @@ class Test_duty(unittest.TestCase):
                          '201710176196~')))
         self.assertEqual(p._duty(data), expected_result)
 
-
     def test_standard_standby(self):
         data = [
             p.DStr(datetime.date(2017, 1, 17), 'ESBY'),
@@ -410,7 +415,6 @@ class Test_duty(unittest.TestCase):
                          T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
                          None),))
         self.assertEqual(p._duty(data), expected_result)
-
 
     def test_standby_then_postioning(self):
         data = [
@@ -447,7 +451,6 @@ class Test_duty(unittest.TestCase):
                          T.SectorFlags.POSITIONING,
                          '201710226140~')))
         self.assertEqual(p._duty(data), expected_result)
-
 
     def test_return_to_stand_and_sector_across_end_of_roster(self):
         data = [
@@ -495,7 +498,6 @@ class Test_duty(unittest.TestCase):
                          T.SectorFlags.NONE,
                          '201610316074~')))
         self.assertEqual(p._duty(data), expected_result)
-
 
     def test_airport_standby_callout_and_diversion(self):
         data = [
@@ -561,7 +563,6 @@ class Test_duty(unittest.TestCase):
                     '20161022394~')))
         self.assertEqual(p._duty(data), expected_result)
 
-
     def test_loe_with_ground_positioning(self):
         data = [
             p.DStr(datetime.date(2017, 5, 28), 'TAXI'),
@@ -612,7 +613,6 @@ class Test_duty(unittest.TestCase):
                          '20170528TAXI~')))
         self.assertEqual(p._duty(data), expected_result)
 
-
     def test_callout_to_asby_then_callout_to_fly(self):
         data = [
             p.DStr(datetime.date(2017, 8, 6), 'LSBY'),
@@ -647,7 +647,7 @@ class Test_duty(unittest.TestCase):
                          datetime.datetime(2017, 8, 6, 12, 40),
                          datetime.datetime(2017, 8, 6, 17, 0),
                          None, None,
-                         T.SectorFlags.QUASI| T.SectorFlags.GROUND_DUTY,
+                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
                          None),
                 T.Sector('ADTY', None, None,
                          datetime.datetime(2017, 8, 6, 17, 0),
@@ -670,7 +670,6 @@ class Test_duty(unittest.TestCase):
                          datetime.datetime(2017, 8, 7, 2, 46),
                          None, None, T.SectorFlags.NONE, '201708076046~')))
         self.assertEqual(p._duty(data), expected_result)
-
 
     def test_lpc(self):
         data = [
