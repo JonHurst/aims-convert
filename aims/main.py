@@ -15,9 +15,10 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
     retval: list[Duty] = []
     ids = []
     for duty in dutylist:
-        ids.extend([f'{X.sched_start:%Y%m%dT%H%M}F{X.name}'
-                    for X in duty.sectors
-                    if X.flags == SectorFlags.NONE])
+        if duty.sectors:
+            ids.extend([f'{X.sched_start:%Y%m%dT%H%M}F{X.name}'
+                        for X in duty.sectors
+                        if X.flags == SectorFlags.NONE])
     try:
         r = requests.post(
             "https://efwj6ola8d.execute-api.eu-west-1.amazonaws.com/"
@@ -28,6 +29,8 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
     except requests.exceptions.RequestException:
         return dutylist  # if anything goes wrong, just return input
     for duty in dutylist:
+        if not duty.sectors:
+            continue
         updated_sectors: list[Sector] = []
         for sec in duty.sectors:
             flightid = f'{sec.sched_start:%Y%m%dT%H%M}F{sec.name}'
@@ -76,7 +79,7 @@ def main() -> int:
         crew = roster.crew(s, dutylist)
         # Clean up names -- they're pretty bad coming off the rosters!
         for key, value in crew.items():
-            crew[key] = tuple(CrewMember(clean(X[0]), X[1]) for X in value)
+            crew[key] = [CrewMember(clean(X[0]), X[1]) for X in value]
         print(output.freeform(dutylist, crew))
     return 0
 

@@ -51,8 +51,8 @@ class TripID(T.NamedTuple):
 
 class Duty(T.NamedTuple):
     trip_id: TripID
-    start: T.Optional[DT.datetime]
-    finish: T.Optional[DT.datetime]
+    start: DT.datetime
+    finish: DT.datetime
     sectors: T.Optional[T.List[Sector]]
 
     def __repr__(self):
