@@ -2,7 +2,7 @@
 import re
 import datetime as dt
 from html.parser import HTMLParser
-from typing import List, Dict, Tuple, Union, NamedTuple
+from typing import Union, NamedTuple
 import enum
 
 import aims.types as T
@@ -27,9 +27,9 @@ class DStr(NamedTuple):
     text: str
 
 
-RosterStream = List[Union[DStr, Break, dt.datetime]]
-Column = List[str]
-Line = List[str]
+RosterStream = list[Union[DStr, Break, dt.datetime]]
+Column = list[str]
+Line = list[str]
 
 
 class DetailedRosterException(Exception):
@@ -103,7 +103,7 @@ def lines(roster: str) -> list[Line]:
     return parser.output_list
 
 
-def extract_date(lines: List[List[str]]) -> dt.date:
+def extract_date(lines: list[list[str]]) -> dt.date:
     """
     Return the date as found in the Period: xx/xx/xxxx clause
 
@@ -116,7 +116,7 @@ def extract_date(lines: List[List[str]]) -> dt.date:
     return dt.datetime.strptime(mo.group(1), "%d/%m/%Y").date()
 
 
-def columns(lines: List[Line]) -> List[Column]:
+def columns(lines: list[Line]) -> list[Column]:
     """
     Convert 'lines' format input to 'columns' format output.
 
@@ -133,7 +133,7 @@ def columns(lines: List[Line]) -> List[Column]:
     """
     # assumption: main table starts on row 5 of the page 1 table
     width = len(lines[5])
-    columns: List[List[str]] = [[] for _ in range(width)]
+    columns: list[list[str]] = [[] for _ in range(width)]
     for line in lines[5:]:
         if len(line) != width:
             continue
@@ -397,12 +397,12 @@ def _crew_strings(roster: str) -> list[str]:
 def crew(
         roster: str,
         duties: list[T.Duty] = []
-) -> dict[str, Tuple[T.CrewMember, ...]]:
+) -> dict[str, tuple[T.CrewMember, ...]]:
     """Extract the crew lists from the text of an AIMS detailed roster.
     """
     # create a mapping of the form {allkey: [crewlist_id1, ...], } to allow
     # crew with flights listed as all to be assigned to sector ids.
-    sector_map: Dict[str, List[str]] = {}
+    sector_map: dict[str, list[str]] = {}
     for duty in duties:
         if not duty.sectors:
             continue
