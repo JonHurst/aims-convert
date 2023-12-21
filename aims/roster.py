@@ -5,7 +5,7 @@ from html.parser import HTMLParser
 from typing import Union, NamedTuple
 import enum
 
-import aims.types as T
+import aims.aimstypes as T
 
 
 class Break(enum.Enum):

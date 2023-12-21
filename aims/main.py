@@ -5,7 +5,7 @@ import os
 import argparse
 import requests
 
-from aims.types import Duty, Sector, SectorFlags, CrewMember
+from aims.aimstypes import Duty, Sector, SectorFlags, CrewMember
 import aims.roster as roster
 import aims.output as output
 from aims.name_cleanup import clean

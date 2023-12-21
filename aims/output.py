@@ -5,7 +5,7 @@ import datetime
 import math
 from typing import List, Dict
 
-from aims.types import Duty, SectorFlags, CrewMember
+from aims.aimstypes import Duty, SectorFlags, CrewMember
 
 
 def roster(duties: List[Duty]) -> str:

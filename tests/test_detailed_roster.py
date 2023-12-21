@@ -3,7 +3,7 @@
 import unittest
 import datetime
 import aims.roster as p
-import aims.types as T
+import aims.aimstypes as T
 
 
 class Test_basic_stream(unittest.TestCase):
