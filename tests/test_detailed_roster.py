@@ -21,7 +21,8 @@ class Test_basic_stream(unittest.TestCase):
                 'BRS', 'SPU', '07:56', '(320)', '',
                 '6206', '13:16', 'SPU', 'BRS', '15:50', '16:20',
                 '(320)', 'FO', '', '', '', '',
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'M', ''],
+                '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', 'M', ''],
             [
                 'Oct23\nWed', 'D/O', '', '', '', '', '', '', '', '', '', '',
                 '', '', '', '',
@@ -351,7 +352,7 @@ class Test_basic_stream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 5, 17), text='BRS'),
             p.DStr(date=datetime.date(2019, 5, 17), text='FAO'),
             datetime.datetime(2019, 5, 17, 20, 25),
-            p.DStr(date=datetime.date(2019, 5, 17), text='24:30'), #tricksy
+            p.DStr(date=datetime.date(2019, 5, 17), text='24:30'),  # tricksy
             p.Break.COLUMN]
         self.assertEqual(
             p.basic_stream(datetime.date(2019, 5, 17), data),
@@ -440,7 +441,7 @@ class Test_duty(unittest.TestCase):
                          datetime.datetime(2017, 10, 22, 10, 0),
                          datetime.datetime(2017, 10, 22, 18, 0),
                          None, None,
-                         T.SectorFlags.QUASI| T.SectorFlags.GROUND_DUTY,
+                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
                          None),
                 T.Sector('6140', 'TLS', 'BRS',
                          datetime.datetime(2017, 10, 22, 19, 28),
@@ -719,7 +720,7 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 10, 17), 'LPA'),
             p.DStr(datetime.date(2017, 10, 17), 'BRS'),
             datetime.datetime(2017, 10, 17, 14, 48),
-            datetime.datetime(2017, 10, 17, 15, 18) ]
+            datetime.datetime(2017, 10, 17, 15, 18)]
         with self.assertRaises(AssertionError):
             p._duty(data)
 
@@ -735,7 +736,7 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 10, 17), 'LPA'),
             p.DStr(datetime.date(2017, 10, 17), 'BRS'),
             datetime.datetime(2017, 10, 17, 14, 48),
-            datetime.datetime(2017, 10, 17, 15, 18) ]
+            datetime.datetime(2017, 10, 17, 15, 18)]
         with self.assertRaises(p.SectorFormatException):
             print(p._duty(data))
 
@@ -752,7 +753,7 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 10, 17), 'LPA'),
             p.DStr(datetime.date(2017, 10, 17), 'BRS'),
             datetime.datetime(2017, 10, 17, 14, 48),
-            datetime.datetime(2017, 10, 17, 15, 18) ]
+            datetime.datetime(2017, 10, 17, 15, 18)]
         with self.assertRaises(p.SectorFormatException):
             print(p._duty(data))
 
@@ -841,9 +842,8 @@ class TestDutyStream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 10, 22), text='SPU'),
             p.DStr(date=datetime.date(2019, 10, 22), text='BRS'),
             datetime.datetime(2019, 10, 22, 15, 50),
-            datetime.datetime(2019, 10, 22, 16, 20),]
+            datetime.datetime(2019, 10, 22, 16, 20), ]
         self.assertEqual(p.duty_stream(data), expected_result)
-
 
     def test_across_midnight(self):
         data = [
@@ -883,7 +883,7 @@ class TestDutyStream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 5, 18), text='PMI'),
             p.DStr(date=datetime.date(2019, 5, 19), text='BRS'),
             datetime.datetime(2019, 5, 18, 23, 55),
-            datetime.datetime(2019, 5, 19, 0, 25),]
+            datetime.datetime(2019, 5, 19, 0, 25), ]
         self.assertEqual(p.duty_stream(data), expected_result)
 
     def test_lpc(self):
@@ -988,7 +988,7 @@ class TestDutyStream(unittest.TestCase):
             datetime.datetime(2019, 4, 28, 20, 30),
             p.Break.COLUMN,
             datetime.datetime(2019, 4, 29, 0, 30)
-            ]
+        ]
         with self.assertRaises(AssertionError):
             p.duty_stream(data)
         data = [  # dstream
@@ -1043,7 +1043,7 @@ class TestCrew(unittest.TestCase):
             '11/04/2019 All               FO> VINCENT RICHARD     '
             + 'PU> SHARRATT CHRISTOPHE FA> KIMBERLEY CHRISTOPH '
             + 'FA> LEWIS ANNA          FA> MADDEN CHLOE       ',
-            ]
+        ]
         duties = [
             T.Duty(
                 T.TripID('14343', ''),
