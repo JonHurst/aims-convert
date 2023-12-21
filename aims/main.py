@@ -5,9 +5,10 @@ import os
 import argparse
 import requests
 
-from aims.types import Duty, Sector, SectorFlags
+from aims.types import Duty, Sector, SectorFlags, CrewMember
 import aims.roster as roster
 import aims.output as output
+from aims.name_cleanup import clean
 
 
 def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
@@ -72,6 +73,9 @@ def main() -> int:
     elif args.format == "freeform":
         dutylist = _update_from_flightinfo(dutylist)
         crew = roster.crew(s, dutylist)
+        # Clean up names -- they're pretty bad coming off the rosters!
+        for key, value in crew.items():
+            crew[key] = tuple(CrewMember(clean(X[0]), X[1]) for X in value)
         print(output.freeform(dutylist, crew))
     return 0
 

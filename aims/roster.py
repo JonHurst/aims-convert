@@ -380,10 +380,6 @@ def _quasi_sector(s):
         None)
 
 
-def _clean_name(name: str) -> str:
-    return " ".join([X.strip().capitalize() for X in name.split()])
-
-
 def _crew_strings(roster: str) -> list[str]:
     lines_ = lines(roster)
     # find header of crew table
@@ -438,9 +434,9 @@ def crew(
             date = dt.datetime.strptime(datestr, "%d/%m/%Y").date()
         except ValueError:
             raise CrewFormatException
-        crewlist = zip(entries[2::2], entries[1::2])
-        crew = tuple([T.CrewMember(_clean_name(X[0]), X[1])
-                      for X in crewlist])
+        crew = tuple([T.CrewMember(
+            " ".join([Y.strip() for Y in X[0].split()]), X[1])
+            for X in zip(entries[2::2], entries[1::2])])
         if route == "All":
             key = f"{date:%Y%m%d}All~"
             for id_ in sector_map.get(key, []):
