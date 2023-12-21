@@ -72,7 +72,6 @@ def main() -> int:
     elif args.format == "freeform":
         dutylist = _update_from_flightinfo(dutylist)
         crew = roster.crew(s, dutylist)
-        print(crew)
         print(output.freeform(dutylist, crew))
     return 0
 
