@@ -144,6 +144,33 @@ def columns(lines: list[Line]) -> list[Column]:
     return columns
 
 
+def _process_column(col, stream, date):
+    assert False not in [isinstance(X, str) for X in col[1:]]
+    for entry in col[1:]:
+        if entry == "":
+            if not isinstance(stream[-1], Break):
+                stream.append(Break.LINE)
+        # bug workaround: roster uses non-existent time "24:00"
+        elif entry == "24:00":
+            stream.append(
+                dt.datetime.combine(
+                    date + dt.timedelta(days=1),
+                    dt.time(0, 0)))
+        else:
+            try:  # try to treat entry like a time
+                time = dt.datetime.strptime(entry, "%H:%M").time()
+                stream.append(dt.datetime.combine(date, time))
+            except ValueError:  # if that fails, treat it like a string
+                stream.append(DStr(date, entry))
+    date += dt.timedelta(days=1)
+    # remove trailing line break
+    if isinstance(stream[-1], Break):
+        del stream[-1]
+    # append the column break
+    stream.append(Break.COLUMN)
+    return date
+
+
 def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
     """Concatenates columns into a stream of datetime, DStr and Break objects
 
@@ -163,29 +190,7 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
             continue
         if col[0] == "":
             break  # column has no header means we're finished
-        assert False not in [isinstance(X, str) for X in col[1:]]
-        for entry in col[1:]:
-            if entry == "":
-                if not isinstance(stream[-1], Break):
-                    stream.append(Break.LINE)
-            # bug workaround: roster uses non-existent time "24:00"
-            elif entry == "24:00":
-                stream.append(
-                    dt.datetime.combine(
-                        date + dt.timedelta(days=1),
-                        dt.time(0, 0)))
-            else:
-                try:  # try to treat entry like a time
-                    time = dt.datetime.strptime(entry, "%H:%M").time()
-                    stream.append(dt.datetime.combine(date, time))
-                except ValueError:  # if that fails, treat it like a string
-                    stream.append(DStr(date, entry))
-        date += dt.timedelta(days=1)
-        # remove trailing line break
-        if isinstance(stream[-1], Break):
-            del stream[-1]
-        # append the column break
-        stream.append(Break.COLUMN)
+        date = _process_column(col, stream, date)
     # there is a corner case where a sector finish time is dragged into the next
     # column by a duty time finishing after midnight, and another where a sector
     # time uses 24:00 as a start time but advances this to where 00:00 should
