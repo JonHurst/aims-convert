@@ -45,7 +45,7 @@ def roster(duties: List[Duty]) -> str:
 
 def freeform(
         duties: List[Duty],
-        crews: Dict[str, List[CrewMember]]
+        crews: Dict[str, tuple[CrewMember, ...]]
 ) -> str:
     output = []
     for duty in duties:

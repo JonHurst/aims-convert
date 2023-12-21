@@ -62,11 +62,14 @@ def main() -> int:
         else:
             aws_roster_path = os.environ.get("AWS_ROSTER_PATH")
             aws_authstr = os.environ.get("AWS_AUTHSTR")
-            r = requests.get(
-                aws_roster_path + f"roster-{args.target}.htm",
-                headers={"Authorization": f"Basic {aws_authstr}"})
-            r.raise_for_status()
-            s = r.text
+            if aws_roster_path and aws_authstr:
+                r = requests.get(
+                    aws_roster_path + f"roster-{args.target}.htm",
+                    headers={"Authorization": f"Basic {aws_authstr}"})
+                r.raise_for_status()
+                s = r.text
+            else:
+                raise Exception("Bad environment")
     except Exception as e:
         print("Failed to load AIMS detailed roster")
         print(e)
@@ -79,7 +82,7 @@ def main() -> int:
         crew = roster.crew(s, dutylist)
         # Clean up names -- they're pretty bad coming off the rosters!
         for key, value in crew.items():
-            crew[key] = [CrewMember(clean(X[0]), X[1]) for X in value]
+            crew[key] = tuple(CrewMember(clean(X[0]), X[1]) for X in value)
         print(output.freeform(dutylist, crew))
     return 0
 
