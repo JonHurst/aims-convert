@@ -62,7 +62,7 @@ class Duty(T.NamedTuple):
 
 
 class AIMSException(Exception):
-    def __init__(self, str_: str ="") -> None:
+    def __init__(self, str_: str = "") -> None:
         self.str_ = str_
 
 

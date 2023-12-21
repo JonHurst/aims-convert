@@ -20,7 +20,8 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
                     if X.flags == SectorFlags.NONE])
     try:
         r = requests.post(
-            "https://efwj6ola8d.execute-api.eu-west-1.amazonaws.com/default/reg",
+            "https://efwj6ola8d.execute-api.eu-west-1.amazonaws.com/"
+            "default/reg",
             json={'flights': ids})
         r.raise_for_status()
         regntype_map = r.json()
@@ -57,7 +58,7 @@ def main() -> int:
                 s = f.read()
         else:
             aws_roster_path = os.environ.get("AWS_ROSTER_PATH")
-            aws_authstr = os.environ.get("AWS_AUTHSTR");
+            aws_authstr = os.environ.get("AWS_AUTHSTR")
             r = requests.get(
                 aws_roster_path + f"roster-{args.target}.htm",
                 headers={"Authorization": f"Basic {aws_authstr}"})
