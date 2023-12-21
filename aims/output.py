@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
-from dateutil import tz
 import datetime
 import math
 from typing import List, Dict
+from zoneinfo import ZoneInfo as Z
 
 from aims.aimstypes import Duty, SectorFlags, CrewMember
+
+UTC = Z("UTC")
+LT = Z("Europe/London")
 
 
 def roster(duties: List[Duty]) -> str:
@@ -13,7 +16,7 @@ def roster(duties: List[Duty]) -> str:
     for duty in duties:
         if not duty.sectors:
             continue
-        start, end = [X.replace(tzinfo=tz.tzutc()).astimezone(tz.tzlocal())
+        start, end = [X.replace(tzinfo=UTC).astimezone(LT)
                       for X in (duty.start, duty.finish)]
         duration = int((end - start).total_seconds()) // 60
         from_ = None
