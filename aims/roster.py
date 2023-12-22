@@ -4,6 +4,7 @@ import datetime as dt
 from html.parser import HTMLParser
 from typing import Union, NamedTuple
 import enum
+import itertools as it
 
 import aims.aimstypes as T
 
@@ -213,24 +214,26 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
 
 def _remove_singles(dstream: list[StreamItem]) -> list[StreamItem]:
     """Remove single DStr surrounded by Breaks"""
+    keep_list = [True] * len(dstream)
     for c in range(1, len(dstream) - 1):
         if (isinstance(dstream[c], DStr)
                 and isinstance(dstream[c - 1], Break)
                 and isinstance(dstream[c + 1], Break)):
-            dstream[c] = None
-            dstream[c - 1] = None
-    return [X for X in dstream if X]
+            keep_list[c] = False
+            keep_list[c - 1] = False
+    return list(it.compress(dstream, keep_list))
 
 
 def _remove_intra_sector_column_breaks(
         dstream: list[StreamItem]
 ) -> list[StreamItem]:
     """Remove column breaks that are immediately followed by a dt.datetime"""
+    keep_list = [True] * len(dstream)
     for c in range(1, len(dstream) - 1):
         if dstream[c] == Break.COLUMN and isinstance(
                 dstream[c + 1], dt.datetime):
-            dstream[c] = None
-    return [X for X in dstream if X]
+            keep_list[c] = False
+    return list(it.compress(dstream, keep_list))
 
 
 def _clean_sector_blocks(
