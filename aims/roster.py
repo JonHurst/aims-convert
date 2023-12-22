@@ -240,8 +240,11 @@ def _clean_sector_blocks(
         dstream: list[StreamItem]
 ) -> list[StreamItem]:
     """Clean up sector blocks, including column break removal"""
+    keep = [True] * len(dstream)
     in_sector = False
     for c in range(1, len(dstream) - 1):
+        if not keep[c]:
+            continue
         if in_sector:
             if dstream[c] == Break.LINE:
                 raise SectorFormatException
@@ -252,17 +255,17 @@ def _clean_sector_blocks(
                 i = c + 2
                 while i < len(dstream) and not isinstance(dstream[i], Break):
                     if isinstance(dstream[i], DStr):
-                        dstream[i] = None
+                        keep[i] = False
                     i += 1
             else:
-                dstream[c] = None  # remove column breaks and extra DStrs
+                keep[c] = False  # remove column breaks and extra DStrs
         else:  # not in sector
             if isinstance(dstream[c], DStr):
                 if isinstance(dstream[c - 1], dt.datetime):  # "from" found
                     in_sector = True
                 elif isinstance(dstream[c - 1], DStr):
-                    dstream[c - 1] = None  # remove extra DStrs at start
-    return [X for X in dstream if X]
+                    keep[c - 1] = False  # remove extra DStrs at start
+    return list(it.compress(dstream, keep))
 
 
 def duty_stream(bstream):
