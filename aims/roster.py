@@ -458,17 +458,18 @@ def crew(
             date = dt.datetime.strptime(datestr, "%d/%m/%Y").date()
         except ValueError:
             raise CrewFormatException
-        crew = tuple([T.CrewMember(
-            " ".join([Y.strip() for Y in X[0].split()]), X[1])
-            for X in zip(entries[2::2], entries[1::2])])
+        crew = []
+        for name_string, role in zip(entries[2::2], entries[1::2]):
+            name_string = " ".join([X.strip() for X in name_string.split()])
+            crew.append(T.CrewMember(name_string, role))
         if route == "All":
             key = f"{date:%Y%m%d}All~"
             for id_ in sector_map.get(key, []):
-                retval[id_] = crew
+                retval[id_] = tuple(crew)
         else:
             for flight in route.split(","):
                 key = f"{date:%Y%m%d}{flight}~"
-                retval[key] = crew
+                retval[key] = tuple(crew)
     return retval
 
 
