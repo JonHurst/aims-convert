@@ -410,14 +410,9 @@ def _crew_strings(roster: str) -> list[str]:
     return lines_[c + 1][0].replace(" ", " ").splitlines()
 
 
-def crew(
-        roster: str,
-        duties: list[T.Duty] = []
-) -> dict[str, tuple[T.CrewMember, ...]]:
-    """Extract the crew lists from the text of an AIMS detailed roster.
-    """
-    # create a mapping of the form {allkey: [crewlist_id1, ...], } to allow
-    # crew with flights listed as all to be assigned to sector ids.
+def _all_flights_mapping(duties: list[T.Duty]) -> dict[str, list[str]]:
+    """Returns a mapping of the form {allkey: [crewlist_id1, ...], } where
+    all_key has the form '%Y%m%dAll~' """
     sector_map: dict[str, list[str]] = {}
     for duty in duties:
         if not duty.sectors:
@@ -428,19 +423,33 @@ def crew(
             if not sector.crewlist_id:
                 continue
             sector_map[key_all].append(sector.crewlist_id)
-    retval = {}
+    return sector_map
+
+
+def _fix_two_line_crews(crew_strings):
+    """Return a list of strings where two line crew strings are joined"""
     # Very occasionally there are so many crew that a crew member drops
     # onto a second line. Normal lines start with dates, so if there is no
     # digit at the start of the string, concatenate it to the previous one.
-    fixed_strings = ["", ]
-    for s in _crew_strings(roster):
+    out = ["", ]
+    for s in crew_strings:
         if not s:
             continue
         if s[0].isdigit():
-            fixed_strings.append(s)
+            out.append(s)
         else:
-            fixed_strings[-1] += s
-    for s in fixed_strings[1:]:
+            out[-1] += s
+    return out[1:]
+
+
+def crew(
+        roster: str,
+        duties: list[T.Duty] = []
+) -> dict[str, tuple[T.CrewMember, ...]]:
+    """Extract crew lists from an AIMS detailed roster."""
+    sector_map = _all_flights_mapping(duties)
+    retval = {}
+    for s in _fix_two_line_crews(_crew_strings(roster)):
         entries = re.split(r"\s*(\w{2})>\w* ", s)
         if len(entries) < 3:
             raise CrewFormatException
