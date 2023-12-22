@@ -27,8 +27,9 @@ class DStr(NamedTuple):
     text: str
 
 
-RosterStream = list[Union[DStr, Break, dt.datetime]]
-DutyStream = list[Union[DStr, Break, dt.datetime]]
+StreamItem = Union[DStr, Break, dt.datetime]
+RosterStream = list[StreamItem]
+DutyStream = list[StreamItem]
 Column = list[str]
 Line = list[str]
 
@@ -145,8 +146,9 @@ def columns(lines: list[Line]) -> list[Column]:
     return columns
 
 
-def _process_column(col, stream, date):
+def _process_column(col: list[str], date: dt.date):
     assert False not in [isinstance(X, str) for X in col[1:]]
+    stream: list[StreamItem] = [Break.COLUMN]
     for entry in col[1:]:
         if entry == "":
             if not isinstance(stream[-1], Break):
@@ -163,13 +165,10 @@ def _process_column(col, stream, date):
                 stream.append(dt.datetime.combine(date, time))
             except ValueError:  # if that fails, treat it like a string
                 stream.append(DStr(date, entry))
-    date += dt.timedelta(days=1)
-    # remove trailing line break
+    # remove trailing break if there is one
     if isinstance(stream[-1], Break):
         del stream[-1]
-    # append the column break
-    stream.append(Break.COLUMN)
-    return date
+    return stream[1:]
 
 
 def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
@@ -191,7 +190,9 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
             continue
         if col[0] == "":
             break  # column has no header means we're finished
-        date = _process_column(col, stream, date)
+        stream += _process_column(col, date)
+        stream.append(Break.COLUMN)
+        date += dt.timedelta(1)
     # there is a corner case where a sector finish time is dragged into the next
     # column by a duty time finishing after midnight, and another where a sector
     # time uses 24:00 as a start time but advances this to where 00:00 should
