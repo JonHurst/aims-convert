@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 
-import datetime
-import math
 from typing import List, Dict
 from zoneinfo import ZoneInfo as Z
 
 from aims.aimstypes import Duty, SectorFlags, CrewMember
+from aims.name_cleanup import clean
 
 UTC = Z("UTC")
 LT = Z("Europe/London")
@@ -64,7 +63,8 @@ def freeform(
 
             # crewlist
             if sector.crewlist_id and sector.crewlist_id in crews:
-                crew = [f"{X[1]}:{X[0]}" for X in crews[sector.crewlist_id]]
+                crew = [f"{X[1]}:{clean(X[0])}"
+                        for X in crews[sector.crewlist_id]]
                 if crew != last_crew:
                     output.append(f"{{ {', '.join(crew)} }}")
                     last_crew = crew
