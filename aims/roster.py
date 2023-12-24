@@ -172,6 +172,11 @@ def _process_column(col: list[str], date: dt.date):
     return stream[1:]
 
 
+def _split_stream(stream, break_type):
+    groups = it.groupby(stream, lambda x: x == break_type)
+    return [list(X[1]) for X in it.islice(groups, 0, None, 2)]
+
+
 def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
     """Concatenates columns into a stream of datetime, DStr and Break objects
 
@@ -329,14 +334,7 @@ def _duty(stream):
         raise SectorFormatException
     tripid = (str((stream[0].date - dt.date(1980, 1, 1)).days), "")
     # split stream at sector breaks
-    sector_streams = [[]]
-    for entry in stream:
-        if isinstance(entry, Break):
-            if not sector_streams[-1]:
-                continue
-            sector_streams.append([])
-        else:
-            sector_streams[-1].append(entry)
+    sector_streams = _split_stream(stream, Break.SECTOR)
     # duty times can now be extracted
     duty_start, duty_finish = _duty_times(sector_streams)
     # build sector list
@@ -482,12 +480,7 @@ def crew(
 def duties(s: str) -> list[T.Duty]:
     lines_ = lines(s)
     bstream = basic_stream(extract_date(lines_), columns(lines_))
-    duty_streams: list[DutyStream] = [[]]
-    for e in duty_stream(bstream):
-        if e == Break.DUTY:
-            duty_streams.append([])
-        else:
-            duty_streams[-1].append(e)
+    duty_streams = _split_stream(duty_stream(bstream), Break.DUTY)
     dutylist = []
     for stream in duty_streams:
         duty = _duty(stream)
