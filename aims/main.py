@@ -5,11 +5,9 @@ import os
 import argparse
 import requests
 
-from aims.aimstypes import Duty, Sector, SectorFlags, CrewMember
+from aims.aimstypes import Duty, Sector, SectorFlags
 import aims.roster as roster
 import aims.output as output
-
-
 
 
 def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
@@ -47,9 +45,10 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
 def _args():
     parser = argparse.ArgumentParser(
         description='Access AIMS data from easyJet servers.')
-    parser.add_argument('format', choices=['roster', 'freeform'])
+    parser.add_argument('format', choices=['roster', 'freeform', 'csv'])
     parser.add_argument('target')
     parser.add_argument('--file', '-f', action="store_true")
+    parser.add_argument('--fo', action="store_true")
     return parser.parse_args()
 
 
@@ -82,6 +81,11 @@ def main() -> int:
         print(output.freeform(
             _update_from_flightinfo(dutylist),
             roster.crew(s, dutylist)))
+    elif args.format == "csv":
+        print(output.csv(
+            _update_from_flightinfo(dutylist),
+            roster.crew(s, dutylist),
+            args.fo))
     return 0
 
 
