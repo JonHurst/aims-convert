@@ -22,12 +22,13 @@ setuptools.setup(
     python_requires='>=3.10',
     install_requires=[
         "requests",
+        "nightflight",
     ],
     package_data={
     },
     entry_points={
         "console_scripts": [
-            "aims2 = aims.main:main",
+            "aims = aims.cli:main",
         ]
     },
 )
