@@ -45,7 +45,7 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
 def _args():
     parser = argparse.ArgumentParser(
         description='Access AIMS data from easyJet servers.')
-    parser.add_argument('format', choices=['roster', 'freeform', 'csv'])
+    parser.add_argument('format', choices=['roster', 'freeform', 'csv', 'ical'])
     parser.add_argument('target')
     parser.add_argument('--file', '-f', action="store_true")
     parser.add_argument('--fo', action="store_true")
@@ -86,6 +86,8 @@ def main() -> int:
             _update_from_flightinfo(dutylist),
             roster.crew(s, dutylist),
             args.fo))
+    elif args.format == "ical":
+        print(output.ical(dutylist))
     return 0
 
 
