@@ -29,6 +29,7 @@ setuptools.setup(
     entry_points={
         "console_scripts": [
             "aims = aims.cli:main",
+            "aimsgui = aims.gui:main"
         ]
     },
 )
