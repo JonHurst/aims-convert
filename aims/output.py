@@ -8,8 +8,8 @@ import datetime as dt
 
 from aims.aimstypes import Duty, SectorFlags, CrewMember
 from aims.name_cleanup import clean
-import nightflight.night as nightcalc
-from nightflight.airport_nvecs import airfields as nvecs
+import nightflight.night as nightcalc  # type: ignore
+from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
 UTC = Z("UTC")
 LT = Z("Europe/London")
@@ -89,7 +89,7 @@ def freeform(
 
 def csv(
         duties: List[Duty],
-        crews: Dict[str, List[CrewMember]],
+        crews: Dict[str, tuple[CrewMember, ...]],
         fo: bool
 ) -> str:
     output = io.StringIO(newline='')
@@ -115,7 +115,7 @@ def csv(
             for fn, sfn in fieldname_map:
                 sec_dict[fn] = sec_dict[sfn]
             sec_dict['Role'] = 'p1s' if fo else 'p1'
-            crewlist = crews.get(sector.crewlist_id, [])
+            crewlist = crews.get(sector.crewlist_id, tuple())
             sec_dict['Captain'] = 'Self'
             if fo and crewlist and crewlist[0].role == 'CP':
                 sec_dict['Captain'] = crewlist[0].name
@@ -168,23 +168,24 @@ def _build_dict(duty: Duty) -> Dict[str, str]:
     sector_strings = []
     airports = []
     from_ = None
-    for sector in duty.sectors:
-        if not from_ and sector.from_:
-            from_ = sector.from_
-        if sector.flags & SectorFlags.QUASI:
-            airports.append(sector.name)
-        elif sector.flags & SectorFlags.POSITIONING:
-            airports.append("[psn]")
-        if sector.to:
-            airports.append(sector.to)
-        off, on = sector.sched_start, sector.sched_finish
-        from_to = ""
-        if sector.from_ and sector.to:
-            from_to = f"{sector.from_}/{sector.to} "
-        sector_strings.append(
-            f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
-            f"{from_to}"
-            f"{sector.reg if sector.reg else ''}")
+    if duty.sectors:
+        for sector in duty.sectors:
+            if not from_ and sector.from_:
+                from_ = sector.from_
+            if sector.flags & SectorFlags.QUASI:
+                airports.append(sector.name)
+            elif sector.flags & SectorFlags.POSITIONING:
+                airports.append("[psn]")
+            if sector.to:
+                airports.append(sector.to)
+            off, on = sector.sched_start, sector.sched_finish
+            from_to = ""
+            if sector.from_ and sector.to:
+                from_to = f"{sector.from_}/{sector.to} "
+            sector_strings.append(
+                f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
+                f"{from_to}"
+                f"{sector.reg if sector.reg else ''}")
     if from_:
         airports = [from_] + airports
     event["sectors"] = "DESCRIPTION:{}\r\n".format(

@@ -22,11 +22,11 @@ def clean(name: str) -> str:
     for c, part in enumerate(parts):
         # remove bracketted stuff
         if part[0] == "(":
-            parts[c] = None
+            parts[c] = ""
             continue
         # remove LR, SR, 50%
         if part.upper() in {"LR", "SR", "50%"}:
-            parts[c] = None
+            parts[c] = ""
             continue
         # remove stars
         new = re.sub(r"\*+", "", part)

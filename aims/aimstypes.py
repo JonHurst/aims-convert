@@ -30,7 +30,7 @@ class Sector(T.NamedTuple):
     reg: T.Optional[str]
     type_: T.Optional[str]
     flags: SectorFlags
-    crewlist_id: T.Optional[str]
+    crewlist_id: str
 
     def __repr__(self):
         return (f"Sector('{self.name}', "
