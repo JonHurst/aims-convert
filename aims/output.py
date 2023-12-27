@@ -11,11 +11,10 @@ from aims.name_cleanup import clean
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
-UTC = Z("UTC")
-LT = Z("Europe/London")
-
 
 def roster(duties: List[Duty]) -> str:
+    UTC = Z("UTC")
+    LT = Z("Europe/London")
     output = []
     for duty in duties:
         if not duty.sectors:

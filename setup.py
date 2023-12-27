@@ -23,7 +23,6 @@ setuptools.setup(
     install_requires=[
         "requests",
         "nightflight",
-        "tzdata"
     ],
     package_data={
     },
