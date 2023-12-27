@@ -1,23 +1,7 @@
 import re
 
 
-# FIXME: These obviously shouldn't be hard coded!
-replacements = {
-    "ROBERTS-JONES NANTL": "Roberts-Jones Nantlais",
-    "TSAKALLI (STELLA) E": "Tsakalli Stella",
-    "Alvarez Alvarez Sar": "Alvarez Sara",
-    "SCRIMSHAW CHRISTOPH": "Scrimshaw Christopher",
-    "RIVILLA RODRIGUEZ R": "Rivilla Raffa",
-    "KIMBERLEY CHRISTOPH": "Kimberley Christopher",
-    "KEFALLONITIS ALEXAN": "Kefallonitis Alexander",
-    "HIGATE JAMES CHARLI": "Higate Charlie",
-    "CUTHBERTSON BENJAMI": "Cuthbertson Benjamin",
-}
-
-
 def clean(name: str) -> str:
-    if name in replacements:
-        return replacements[name]
     parts = [X.strip().capitalize() for X in name.split()]
     for c, part in enumerate(parts):
         # remove bracketted stuff
