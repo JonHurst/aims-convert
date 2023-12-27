@@ -2,12 +2,68 @@
 import re
 import datetime as dt
 from html.parser import HTMLParser
-from typing import Union, NamedTuple
+from typing import Union, NamedTuple, Optional
 import enum
 import itertools as it
 import requests
 
-import aims.aimstypes as T
+
+class CrewMember(NamedTuple):
+    name: str
+    role: str
+
+    def __repr__(self):
+        return f"CrewMember({self.name}, {self.role})"
+
+
+class SectorFlags(enum.Flag):
+    NONE = 0
+    POSITIONING = enum.auto()
+    GROUND_DUTY = enum.auto()
+    QUASI = enum.auto()
+    # QUASI means a standby or SEP segment recorded in a duty as a sector
+
+
+class Sector(NamedTuple):
+    name: str
+    from_: Optional[str]
+    to: Optional[str]
+    sched_start: dt.datetime
+    sched_finish: dt.datetime
+    act_start: Optional[dt.datetime]
+    act_finish: Optional[dt.datetime]
+    reg: Optional[str]
+    type_: Optional[str]
+    flags: SectorFlags
+    crewlist_id: str
+
+    def __repr__(self):
+        return (f"Sector('{self.name}', "
+                f"'{self.from_}', '{self.to}', "
+                f"{repr(self.sched_start)}, {repr(self.sched_finish)}, "
+                f"{repr(self.act_start)}, {repr(self.act_finish)}, "
+                f"'{self.reg}', '{self.type_}', {repr(self.flags)}, "
+                f"'{self.crewlist_id}')").replace("'None'", "None")
+
+
+class TripID(NamedTuple):
+    aims_day: str
+    trip: str
+
+    def __repr__(self):
+        return f"TripID('{self.aims_day}', '{self.trip}')"
+
+
+class Duty(NamedTuple):
+    trip_id: TripID
+    start: dt.datetime
+    finish: dt.datetime
+    sectors: Optional[list[Sector]]
+
+    def __repr__(self):
+        return (f"Duty({self.trip_id}, "
+                f"{repr(self.start)}, {repr(self.finish)}, "
+                f"{self.sectors})")
 
 
 class Break(enum.Enum):
@@ -350,7 +406,7 @@ def _duty(stream):
                 break
         else:  # no DStr objects found in expected range
             sectors.append(_quasi_sector(sector_stream))
-    return T.Duty(tripid, duty_start, duty_finish, tuple(sectors))
+    return Duty(tripid, duty_start, duty_finish, tuple(sectors))
 
 
 def _duty_times(sectors):
@@ -369,13 +425,13 @@ def _sector(s, idx):
             or not isinstance(s[idx - 1], dt.datetime)
             or not isinstance(s[idx + 2], dt.datetime)):
         raise SectorFormatException
-    flags = T.SectorFlags.NONE
+    flags = SectorFlags.NONE
     if s[idx].text[0] == "*":
         s[idx] = DStr(s[idx].date, s[idx].text[1:])
-        flags |= T.SectorFlags.POSITIONING
+        flags |= SectorFlags.POSITIONING
     if s[0].text == "TAXI":
-        flags |= T.SectorFlags.GROUND_DUTY
-    return T.Sector(
+        flags |= SectorFlags.GROUND_DUTY
+    return Sector(
         s[0].text, s[idx].text, s[idx + 1].text,
         s[idx - 1], s[idx + 2],
         s[idx - 1], s[idx + 2],
@@ -393,10 +449,10 @@ def _quasi_sector(s):
         start, finish = s[2], s[3]
     else:
         start, finish = s[1], s[-1]
-    return T.Sector(
+    return Sector(
         name, None, None, start, finish, start, finish,
         None, None,
-        T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+        SectorFlags.QUASI | SectorFlags.GROUND_DUTY,
         None)
 
 
@@ -415,7 +471,7 @@ def _crew_strings(roster: str) -> list[str]:
     return lines_[c + 1][0].replace(" ", " ").splitlines()
 
 
-def _all_flights_mapping(duties: list[T.Duty]) -> dict[str, list[str]]:
+def _all_flights_mapping(duties: list[Duty]) -> dict[str, list[str]]:
     """Returns a mapping of the form {allkey: [crewlist_id1, ...], } where
     all_key has the form '%Y%m%dAll~' """
     sector_map: dict[str, list[str]] = {}
@@ -449,8 +505,8 @@ def _fix_two_line_crews(crew_strings):
 
 def crew(
         roster: str,
-        duties: list[T.Duty] = []
-) -> dict[str, tuple[T.CrewMember, ...]]:
+        duties: list[Duty] = []
+) -> dict[str, tuple[CrewMember, ...]]:
     """Extract crew lists from an AIMS detailed roster."""
     sector_map = _all_flights_mapping(duties)
     retval = {}
@@ -466,7 +522,7 @@ def crew(
         crew = []
         for name_string, role in zip(entries[2::2], entries[1::2]):
             name_string = " ".join([X.strip() for X in name_string.split()])
-            crew.append(T.CrewMember(name_string, role))
+            crew.append(CrewMember(name_string, role))
         if route == "All":
             key = f"{date:%Y%m%d}All~"
             for id_ in sector_map.get(key, []):
@@ -478,14 +534,14 @@ def crew(
     return retval
 
 
-def _update_from_flightinfo(dutylist: list[T.Duty]) -> list[T.Duty]:
-    retval: list[T.Duty] = []
+def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
+    retval: list[Duty] = []
     ids = []
     for duty in dutylist:
         if duty.sectors:
             ids.extend([f'{X.sched_start:%Y%m%dT%H%M}F{X.name}'
                         for X in duty.sectors
-                        if X.flags == T.SectorFlags.NONE])
+                        if X.flags == SectorFlags.NONE])
     try:
         r = requests.post(
             "https://efwj6ola8d.execute-api.eu-west-1.amazonaws.com/"
@@ -498,7 +554,7 @@ def _update_from_flightinfo(dutylist: list[T.Duty]) -> list[T.Duty]:
     for duty in dutylist:
         if not duty.sectors:
             continue
-        updated_sectors: list[T.Sector] = []
+        updated_sectors: list[Sector] = []
         for sec in duty.sectors:
             flightid = f'{sec.sched_start:%Y%m%dT%H%M}F{sec.name}'
             if flightid in regntype_map:
@@ -510,7 +566,7 @@ def _update_from_flightinfo(dutylist: list[T.Duty]) -> list[T.Duty]:
     return retval
 
 
-def duties(s: str) -> list[T.Duty]:
+def duties(s: str) -> list[Duty]:
     lines_ = lines(s)
     bstream = basic_stream(extract_date(lines_), columns(lines_))
     duty_streams = _split_stream(duty_stream(bstream), Break.DUTY)

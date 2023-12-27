@@ -6,7 +6,7 @@ import io
 import csv as libcsv
 import datetime as dt
 
-from aims.aimstypes import Duty, SectorFlags, CrewMember
+from aims.roster import Duty, SectorFlags, CrewMember
 from aims.name_cleanup import clean
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore

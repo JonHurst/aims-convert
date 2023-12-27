@@ -3,7 +3,6 @@
 import unittest
 import datetime
 import aims.roster as p
-import aims.aimstypes as T
 
 
 class Test_basic_stream(unittest.TestCase):
@@ -376,24 +375,24 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 10, 17), 'BRS'),
             datetime.datetime(2017, 10, 17, 14, 48),
             datetime.datetime(2017, 10, 17, 15, 18)]
-        expected_result = T.Duty(
-            T.TripID('13804', ''),
+        expected_result = p.Duty(
+            p.TripID('13804', ''),
             datetime.datetime(2017, 10, 17, 4, 30),
             datetime.datetime(2017, 10, 17, 15, 18),
             (
-                T.Sector('6195', 'BRS', 'LPA',
+                p.Sector('6195', 'BRS', 'LPA',
                          datetime.datetime(2017, 10, 17, 5, 40),
                          datetime.datetime(2017, 10, 17, 10, 7),
                          datetime.datetime(2017, 10, 17, 5, 40),
                          datetime.datetime(2017, 10, 17, 10, 7),
-                         None, None, T.SectorFlags.NONE,
+                         None, None, p.SectorFlags.NONE,
                          '201710176195~'),
-                T.Sector('6196', 'LPA', 'BRS',
+                p.Sector('6196', 'LPA', 'BRS',
                          datetime.datetime(2017, 10, 17, 11, 7),
                          datetime.datetime(2017, 10, 17, 14, 48),
                          datetime.datetime(2017, 10, 17, 11, 7),
                          datetime.datetime(2017, 10, 17, 14, 48),
-                         None, None, T.SectorFlags.NONE,
+                         None, None, p.SectorFlags.NONE,
                          '201710176196~')))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -402,18 +401,18 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 1, 17), 'ESBY'),
             datetime.datetime(2017, 1, 17, 6, 15),
             datetime.datetime(2017, 1, 17, 14, 15)]
-        expected_result = T.Duty(
-            T.TripID('13531', ''),
+        expected_result = p.Duty(
+            p.TripID('13531', ''),
             datetime.datetime(2017, 1, 17, 6, 15),
             datetime.datetime(2017, 1, 17, 14, 15),
             (
-                T.Sector('ESBY', None, None,
+                p.Sector('ESBY', None, None,
                          datetime.datetime(2017, 1, 17, 6, 15),
                          datetime.datetime(2017, 1, 17, 14, 15),
                          datetime.datetime(2017, 1, 17, 6, 15),
                          datetime.datetime(2017, 1, 17, 14, 15),
                          None, None,
-                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                         p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                          None),))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -430,26 +429,26 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 10, 22), 'BRS'),
             datetime.datetime(2017, 10, 22, 21, 25),
             datetime.datetime(2017, 10, 22, 21, 40)]
-        expected_result = T.Duty(
-            T.TripID('13809', ''),
+        expected_result = p.Duty(
+            p.TripID('13809', ''),
             datetime.datetime(2017, 10, 22, 10, 0),
             datetime.datetime(2017, 10, 22, 21, 40),
             (
-                T.Sector('LSBY', None, None,
+                p.Sector('LSBY', None, None,
                          datetime.datetime(2017, 10, 22, 10, 0),
                          datetime.datetime(2017, 10, 22, 18, 0),
                          datetime.datetime(2017, 10, 22, 10, 0),
                          datetime.datetime(2017, 10, 22, 18, 0),
                          None, None,
-                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                         p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                          None),
-                T.Sector('6140', 'TLS', 'BRS',
+                p.Sector('6140', 'TLS', 'BRS',
                          datetime.datetime(2017, 10, 22, 19, 28),
                          datetime.datetime(2017, 10, 22, 21, 25),
                          datetime.datetime(2017, 10, 22, 19, 28),
                          datetime.datetime(2017, 10, 22, 21, 25),
                          None, None,
-                         T.SectorFlags.POSITIONING,
+                         p.SectorFlags.POSITIONING,
                          '201710226140~')))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -471,32 +470,32 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2016, 10, 31), '6074'),
             datetime.datetime(2016, 10, 31, 21, 39),
             p.DStr(datetime.date(2016, 10, 31), 'ALC')]
-        expected_result = T.Duty(
-            T.TripID('13453', ''),
+        expected_result = p.Duty(
+            p.TripID('13453', ''),
             datetime.datetime(2016, 10, 31, 15, 30),
             datetime.datetime(2016, 11, 1, 0, 0),
             (
-                T.Sector('6073R', 'BRS', 'BRS',
+                p.Sector('6073R', 'BRS', 'BRS',
                          datetime.datetime(2016, 10, 31, 16, 30),
                          datetime.datetime(2016, 10, 31, 16, 45),
                          datetime.datetime(2016, 10, 31, 16, 30),
                          datetime.datetime(2016, 10, 31, 16, 45),
-                         None, None, T.SectorFlags.NONE,
+                         None, None, p.SectorFlags.NONE,
                          '201610316073R~'),
-                T.Sector('6073', 'BRS', 'ALC',
+                p.Sector('6073', 'BRS', 'ALC',
                          datetime.datetime(2016, 10, 31, 18, 43),
                          datetime.datetime(2016, 10, 31, 21, 4),
                          datetime.datetime(2016, 10, 31, 18, 43),
                          datetime.datetime(2016, 10, 31, 21, 4),
-                         None, None, T.SectorFlags.NONE,
+                         None, None, p.SectorFlags.NONE,
                          '201610316073~'),
-                T.Sector('6074', 'ALC', '???',
+                p.Sector('6074', 'ALC', '???',
                          datetime.datetime(2016, 10, 31, 21, 39),
                          datetime.datetime(2016, 11, 1, 0, 0),
                          datetime.datetime(2016, 10, 31, 21, 39),
                          datetime.datetime(2016, 11, 1, 0, 0),
                          None, None,
-                         T.SectorFlags.NONE,
+                         p.SectorFlags.NONE,
                          '201610316074~')))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -525,42 +524,42 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2016, 10, 22), 'BRS'),
             datetime.datetime(2016, 10, 22, 11, 13),
             datetime.datetime(2016, 10, 22, 11, 43)]
-        expected_result = T.Duty(
-            T.TripID('13444', ''),
+        expected_result = p.Duty(
+            p.TripID('13444', ''),
             datetime.datetime(2016, 10, 22, 5, 0),
             datetime.datetime(2016, 10, 22, 11, 43),
             (
-                T.Sector(
+                p.Sector(
                     'ADTY', None, None,
                     datetime.datetime(2016, 10, 22, 5, 0),
                     datetime.datetime(2016, 10, 22, 5, 5),
                     datetime.datetime(2016, 10, 22, 5, 0),
                     datetime.datetime(2016, 10, 22, 5, 5),
-                    None, None, T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                    None, None, p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                     None),
-                T.Sector(
+                p.Sector(
                     '393', 'BRS', 'INV',
                     datetime.datetime(2016, 10, 22, 6, 7),
                     datetime.datetime(2016, 10, 22, 7, 35),
                     datetime.datetime(2016, 10, 22, 6, 7),
                     datetime.datetime(2016, 10, 22, 7, 35),
-                    None, None, T.SectorFlags.NONE,
+                    None, None, p.SectorFlags.NONE,
                     '20161022393~'),
-                T.Sector(
+                p.Sector(
                     '394', 'INV', 'CWL',
                     datetime.datetime(2016, 10, 22, 8, 12),
                     datetime.datetime(2016, 10, 22, 9, 26),
                     datetime.datetime(2016, 10, 22, 8, 12),
                     datetime.datetime(2016, 10, 22, 9, 26),
-                    None, None, T.SectorFlags.NONE,
+                    None, None, p.SectorFlags.NONE,
                     '20161022394~'),
-                T.Sector(
+                p.Sector(
                     '394', 'CWL', 'BRS',
                     datetime.datetime(2016, 10, 22, 10, 50),
                     datetime.datetime(2016, 10, 22, 11, 13),
                     datetime.datetime(2016, 10, 22, 10, 50),
                     datetime.datetime(2016, 10, 22, 11, 13),
-                    None, None, T.SectorFlags.NONE,
+                    None, None, p.SectorFlags.NONE,
                     '20161022394~')))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -583,34 +582,34 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 5, 28), 'MAN'),
             datetime.datetime(2017, 5, 28, 23, 45),
             datetime.datetime(2017, 5, 28, 23, 45)]
-        expected_result = T.Duty(
-            T.TripID('13662', ''),
+        expected_result = p.Duty(
+            p.TripID('13662', ''),
             datetime.datetime(2017, 5, 28, 13, 15),
             datetime.datetime(2017, 5, 28, 23, 45),
             (
-                T.Sector('TAXI', 'BRS', 'XWS',
+                p.Sector('TAXI', 'BRS', 'XWS',
                          datetime.datetime(2017, 5, 28, 13, 15),
                          datetime.datetime(2017, 5, 28, 16, 45),
                          datetime.datetime(2017, 5, 28, 13, 15),
                          datetime.datetime(2017, 5, 28, 16, 45),
                          None, None,
-                         T.SectorFlags.GROUND_DUTY | T.SectorFlags.POSITIONING,
+                         p.SectorFlags.GROUND_DUTY | p.SectorFlags.POSITIONING,
                          '20170528TAXI~'),
-                T.Sector('LOEV', None, None,
+                p.Sector('LOEV', None, None,
                          datetime.datetime(2017, 5, 28, 18, 15),
                          datetime.datetime(2017, 5, 28, 22, 15),
                          datetime.datetime(2017, 5, 28, 18, 15),
                          datetime.datetime(2017, 5, 28, 22, 15),
                          None, None,
-                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                         p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                          None),
-                T.Sector('TAXI', 'XWS', 'MAN',
+                p.Sector('TAXI', 'XWS', 'MAN',
                          datetime.datetime(2017, 5, 28, 23, 15),
                          datetime.datetime(2017, 5, 28, 23, 45),
                          datetime.datetime(2017, 5, 28, 23, 15),
                          datetime.datetime(2017, 5, 28, 23, 45),
                          None, None,
-                         T.SectorFlags.GROUND_DUTY | T.SectorFlags.POSITIONING,
+                         p.SectorFlags.GROUND_DUTY | p.SectorFlags.POSITIONING,
                          '20170528TAXI~')))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -637,39 +636,39 @@ class Test_duty(unittest.TestCase):
             p.DStr(datetime.date(2017, 8, 7), 'BRS'),
             datetime.datetime(2017, 8, 7, 2, 46),
             datetime.datetime(2017, 8, 7, 3, 16)]
-        expected_result = T.Duty(
-            T.TripID('13732', ''),
+        expected_result = p.Duty(
+            p.TripID('13732', ''),
             datetime.datetime(2017, 8, 6, 12, 40),
             datetime.datetime(2017, 8, 7, 3, 16),
             (
-                T.Sector('LSBY', None, None,
+                p.Sector('LSBY', None, None,
                          datetime.datetime(2017, 8, 6, 12, 40),
                          datetime.datetime(2017, 8, 6, 17, 0),
                          datetime.datetime(2017, 8, 6, 12, 40),
                          datetime.datetime(2017, 8, 6, 17, 0),
                          None, None,
-                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                         p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                          None),
-                T.Sector('ADTY', None, None,
+                p.Sector('ADTY', None, None,
                          datetime.datetime(2017, 8, 6, 17, 0),
                          datetime.datetime(2017, 8, 6, 17, 45),
                          datetime.datetime(2017, 8, 6, 17, 0),
                          datetime.datetime(2017, 8, 6, 17, 45),
                          None, None,
-                         T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                         p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                          None),
-                T.Sector('6045', 'BRS', 'PMI',
+                p.Sector('6045', 'BRS', 'PMI',
                          datetime.datetime(2017, 8, 6, 21, 10),
                          datetime.datetime(2017, 8, 6, 23, 22),
                          datetime.datetime(2017, 8, 6, 21, 10),
                          datetime.datetime(2017, 8, 6, 23, 22),
-                         None, None, T.SectorFlags.NONE, '201708066045~'),
-                T.Sector('6046', 'PMI', 'BRS',
+                         None, None, p.SectorFlags.NONE, '201708066045~'),
+                p.Sector('6046', 'PMI', 'BRS',
                          datetime.datetime(2017, 8, 7, 0, 29),
                          datetime.datetime(2017, 8, 7, 2, 46),
                          datetime.datetime(2017, 8, 7, 0, 29),
                          datetime.datetime(2017, 8, 7, 2, 46),
-                         None, None, T.SectorFlags.NONE, '201708076046~')))
+                         None, None, p.SectorFlags.NONE, '201708076046~')))
         self.assertEqual(p._duty(data), expected_result)
 
     def test_lpc(self):
@@ -679,19 +678,19 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2019, 10, 28, 18, 30),
             datetime.datetime(2019, 10, 28, 22, 30),
             datetime.datetime(2019, 10, 28, 23, 30)]
-        expected_result = T.Duty(
-            T.TripID('14545', ''),
+        expected_result = p.Duty(
+            p.TripID('14545', ''),
             datetime.datetime(2019, 10, 28, 17, 0),
             datetime.datetime(2019, 10, 28, 23, 30),
             (
-                T.Sector(
+                p.Sector(
                     'LIPC', None, None,
                     datetime.datetime(2019, 10, 28, 18, 30),
                     datetime.datetime(2019, 10, 28, 22, 30),
                     datetime.datetime(2019, 10, 28, 18, 30),
                     datetime.datetime(2019, 10, 28, 22, 30),
                     None, None,
-                    T.SectorFlags.QUASI | T.SectorFlags.GROUND_DUTY,
+                    p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                     None),))
         self.assertEqual(p._duty(data), expected_result)
 
@@ -1045,137 +1044,137 @@ class TestCrew(unittest.TestCase):
             + 'FA> LEWIS ANNA          FA> MADDEN CHLOE       ',
         ]
         duties = [
-            T.Duty(
-                T.TripID('14343', ''),
+            p.Duty(
+                p.TripID('14343', ''),
                 datetime.datetime(2019, 4, 9, 15, 30),
                 datetime.datetime(2019, 4, 9, 22, 33),
                 (
-                    T.Sector('6073', 'BRS', 'ALC',
+                    p.Sector('6073', 'BRS', 'ALC',
                              datetime.datetime(2019, 4, 9, 16, 27),
                              datetime.datetime(2019, 4, 9, 18, 55),
                              datetime.datetime(2019, 4, 9, 16, 27),
                              datetime.datetime(2019, 4, 9, 18, 55),
-                             None, None, T.SectorFlags.NONE, '201904096073~'),
-                    T.Sector('6074', 'ALC', 'BRS',
+                             None, None, p.SectorFlags.NONE, '201904096073~'),
+                    p.Sector('6074', 'ALC', 'BRS',
                              datetime.datetime(2019, 4, 9, 19, 37),
                              datetime.datetime(2019, 4, 9, 22, 3),
                              datetime.datetime(2019, 4, 9, 19, 37),
                              datetime.datetime(2019, 4, 9, 22, 3),
-                             None, None, T.SectorFlags.NONE, '201904096074~'))),
-            T.Duty(
-                T.TripID('14344', ''),
+                             None, None, p.SectorFlags.NONE, '201904096074~'))),
+            p.Duty(
+                p.TripID('14344', ''),
                 datetime.datetime(2019, 4, 10, 11, 45),
                 datetime.datetime(2019, 4, 10, 22, 6),
                 (
-                    T.Sector('6253', 'BRS', 'LIS',
+                    p.Sector('6253', 'BRS', 'LIS',
                              datetime.datetime(2019, 4, 10, 13, 11),
                              datetime.datetime(2019, 4, 10, 15, 28),
                              datetime.datetime(2019, 4, 10, 13, 11),
                              datetime.datetime(2019, 4, 10, 15, 28),
-                             None, None, T.SectorFlags.NONE, '201904106253~'),
-                    T.Sector('6254', 'LIS', 'BRS',
+                             None, None, p.SectorFlags.NONE, '201904106253~'),
+                    p.Sector('6254', 'LIS', 'BRS',
                              datetime.datetime(2019, 4, 10, 16, 17),
                              datetime.datetime(2019, 4, 10, 18, 45),
                              datetime.datetime(2019, 4, 10, 16, 17),
                              datetime.datetime(2019, 4, 10, 18, 45),
-                             None, None, T.SectorFlags, '201904106254~'),
-                    T.Sector('570', 'BRS', 'NCL',
+                             None, None, p.SectorFlags, '201904106254~'),
+                    p.Sector('570', 'BRS', 'NCL',
                              datetime.datetime(2019, 4, 10, 19, 12),
                              datetime.datetime(2019, 4, 10, 20, 13),
                              datetime.datetime(2019, 4, 10, 19, 12),
                              datetime.datetime(2019, 4, 10, 20, 13),
-                             None, None, T.SectorFlags.NONE, '20190410570~'),
-                    T.Sector('569', 'NCL', 'BRS',
+                             None, None, p.SectorFlags.NONE, '20190410570~'),
+                    p.Sector('569', 'NCL', 'BRS',
                              datetime.datetime(2019, 4, 10, 20, 38),
                              datetime.datetime(2019, 4, 10, 21, 36),
                              datetime.datetime(2019, 4, 10, 20, 38),
                              datetime.datetime(2019, 4, 10, 21, 36),
-                             None, None, T.SectorFlags.NONE, '20190410569~'))),
-            T.Duty(
-                T.TripID('14345', ''),
+                             None, None, p.SectorFlags.NONE, '20190410569~'))),
+            p.Duty(
+                p.TripID('14345', ''),
                 datetime.datetime(2019, 4, 11, 11, 20),
                 datetime.datetime(2019, 4, 11, 22, 20),
                 (
-                    T.Sector('6241', 'BRS', 'BIO',
+                    p.Sector('6241', 'BRS', 'BIO',
                              datetime.datetime(2019, 4, 11, 12, 15),
                              datetime.datetime(2019, 4, 11, 13, 54),
                              datetime.datetime(2019, 4, 11, 12, 15),
                              datetime.datetime(2019, 4, 11, 13, 54),
-                             None, None, T.SectorFlags.NONE, '201904116241~'),
-                    T.Sector('6242', 'BIO', 'BRS',
+                             None, None, p.SectorFlags.NONE, '201904116241~'),
+                    p.Sector('6242', 'BIO', 'BRS',
                              datetime.datetime(2019, 4, 11, 14, 46),
                              datetime.datetime(2019, 4, 11, 16, 22),
                              datetime.datetime(2019, 4, 11, 14, 46),
                              datetime.datetime(2019, 4, 11, 16, 22),
-                             None, None, T.SectorFlags.NONE, '201904116242~'),
-                    T.Sector('6035', 'BRS', 'MAD',
+                             None, None, p.SectorFlags.NONE, '201904116242~'),
+                    p.Sector('6035', 'BRS', 'MAD',
                              datetime.datetime(2019, 4, 11, 17, 0),
                              datetime.datetime(2019, 4, 11, 19, 6),
                              datetime.datetime(2019, 4, 11, 17, 0),
                              datetime.datetime(2019, 4, 11, 19, 6),
-                             None, None, T.SectorFlags.NONE, '201904116035~'),
-                    T.Sector('6036', 'MAD', 'BRS',
+                             None, None, p.SectorFlags.NONE, '201904116035~'),
+                    p.Sector('6036', 'MAD', 'BRS',
                              datetime.datetime(2019, 4, 11, 19, 44),
                              datetime.datetime(2019, 4, 11, 21, 50),
                              datetime.datetime(2019, 4, 11, 19, 44),
                              datetime.datetime(2019, 4, 11, 21, 50),
-                             None, None, T.SectorFlags.NONE, '201904116036~')))
+                             None, None, p.SectorFlags.NONE, '201904116036~')))
         ]
         expected_results = {
-            '201904096073~': (T.CrewMember("HUTTON STUART", "FO"),
-                              T.CrewMember("WELCH FIONA", "PU"),
-                              T.CrewMember("CALLACHAN MICHAEL", "FA"),
-                              T.CrewMember("HAWKINGS KERRIN", "FA"),
-                              T.CrewMember("LUCAS BETHANY", "FA"),
-                              T.CrewMember("LINE EXTRA", "FA")),
-            '201904096074~': (T.CrewMember("HUTTON STUART", "FO"),
-                              T.CrewMember("WELCH FIONA", "PU"),
-                              T.CrewMember("CALLACHAN MICHAEL", "FA"),
-                              T.CrewMember("HAWKINGS KERRIN", "FA"),
-                              T.CrewMember("LUCAS BETHANY", "FA"),
-                              T.CrewMember("LINE EXTRA", "FA")),
-            '20190410569~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                             T.CrewMember("SIMS GEORGIA", "PU"),
-                             T.CrewMember("DOUGLAS AYSHA", "FA"),
-                             T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                             T.CrewMember("VINCENT LORNA", "FA")),
-            '20190410570~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                             T.CrewMember("SIMS GEORGIA", "PU"),
-                             T.CrewMember("DOUGLAS AYSHA", "FA"),
-                             T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                             T.CrewMember("VINCENT LORNA", "FA")),
-            '201904106253~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SIMS GEORGIA", "PU"),
-                              T.CrewMember("DOUGLAS AYSHA", "FA"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("VINCENT LORNA", "FA")),
-            '201904106254~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SIMS GEORGIA", "PU"),
-                              T.CrewMember("DOUGLAS AYSHA", "FA"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("VINCENT LORNA", "FA")),
-            '20190410*6253~': (T.CrewMember("RIDLEY LEON SR", "CP"),),
-            '20190410*6254~': (T.CrewMember("PEACEY EMMA", "PU"),),
-            '201904116241~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SHARRATT CHRISTOPHE", "PU"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("LEWIS ANNA", "FA"),
-                              T.CrewMember("MADDEN CHLOE", "FA")),
-            '201904116242~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SHARRATT CHRISTOPHE", "PU"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("LEWIS ANNA", "FA"),
-                              T.CrewMember("MADDEN CHLOE", "FA")),
-            '201904116035~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SHARRATT CHRISTOPHE", "PU"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("LEWIS ANNA", "FA"),
-                              T.CrewMember("MADDEN CHLOE", "FA")),
-            '201904116036~': (T.CrewMember("VINCENT RICHARD", "FO"),
-                              T.CrewMember("SHARRATT CHRISTOPHE", "PU"),
-                              T.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
-                              T.CrewMember("LEWIS ANNA", "FA"),
-                              T.CrewMember("MADDEN CHLOE", "FA"))
+            '201904096073~': (p.CrewMember("HUTTON STUART", "FO"),
+                              p.CrewMember("WELCH FIONA", "PU"),
+                              p.CrewMember("CALLACHAN MICHAEL", "FA"),
+                              p.CrewMember("HAWKINGS KERRIN", "FA"),
+                              p.CrewMember("LUCAS BETHANY", "FA"),
+                              p.CrewMember("LINE EXTRA", "FA")),
+            '201904096074~': (p.CrewMember("HUTTON STUART", "FO"),
+                              p.CrewMember("WELCH FIONA", "PU"),
+                              p.CrewMember("CALLACHAN MICHAEL", "FA"),
+                              p.CrewMember("HAWKINGS KERRIN", "FA"),
+                              p.CrewMember("LUCAS BETHANY", "FA"),
+                              p.CrewMember("LINE EXTRA", "FA")),
+            '20190410569~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                             p.CrewMember("SIMS GEORGIA", "PU"),
+                             p.CrewMember("DOUGLAS AYSHA", "FA"),
+                             p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                             p.CrewMember("VINCENT LORNA", "FA")),
+            '20190410570~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                             p.CrewMember("SIMS GEORGIA", "PU"),
+                             p.CrewMember("DOUGLAS AYSHA", "FA"),
+                             p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                             p.CrewMember("VINCENT LORNA", "FA")),
+            '201904106253~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SIMS GEORGIA", "PU"),
+                              p.CrewMember("DOUGLAS AYSHA", "FA"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("VINCENT LORNA", "FA")),
+            '201904106254~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SIMS GEORGIA", "PU"),
+                              p.CrewMember("DOUGLAS AYSHA", "FA"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("VINCENT LORNA", "FA")),
+            '20190410*6253~': (p.CrewMember("RIDLEY LEON SR", "CP"),),
+            '20190410*6254~': (p.CrewMember("PEACEY EMMA", "PU"),),
+            '201904116241~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SHARRATT CHRISTOPHE", "PU"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("LEWIS ANNA", "FA"),
+                              p.CrewMember("MADDEN CHLOE", "FA")),
+            '201904116242~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SHARRATT CHRISTOPHE", "PU"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("LEWIS ANNA", "FA"),
+                              p.CrewMember("MADDEN CHLOE", "FA")),
+            '201904116035~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SHARRATT CHRISTOPHE", "PU"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("LEWIS ANNA", "FA"),
+                              p.CrewMember("MADDEN CHLOE", "FA")),
+            '201904116036~': (p.CrewMember("VINCENT RICHARD", "FO"),
+                              p.CrewMember("SHARRATT CHRISTOPHE", "PU"),
+                              p.CrewMember("KIMBERLEY CHRISTOPH", "FA"),
+                              p.CrewMember("LEWIS ANNA", "FA"),
+                              p.CrewMember("MADDEN CHLOE", "FA"))
         }
         self.assertEqual(p.crew("", duties), expected_results)
 
