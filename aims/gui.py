@@ -5,7 +5,6 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 
-import aims.aimstypes as T
 import aims.roster as dr
 
 from aims.output import csv
@@ -29,7 +28,6 @@ class ModeSelector(ttk.Frame):
         self.frm_csv_options = None
         self.frm_csv_settings = None
         self.__make_widgets()
-
 
     def __make_widgets(self):
         frm_output_type = ttk.LabelFrame(self, text="Output type")
@@ -61,11 +59,10 @@ class ModeSelector(ttk.Frame):
         self.frm_csv_options = ttk.LabelFrame(self, text="Options")
         with_header = ttk.Checkbutton(self.frm_csv_options,
                                       text="Header",
-                                      variable = self.with_header,
+                                      variable=self.with_header,
                                       command=self.options_changed)
         with_header.pack(fill=tk.X)
         self.frm_csv_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
-
 
     def output_type_changed(self):
         assert self.output_type.get() in ('csv', 'ical')
@@ -77,10 +74,8 @@ class ModeSelector(ttk.Frame):
             self.frm_csv_options.pack_forget()
         self.event_generate("<<ModeChange>>", when="tail")
 
-
     def role_changed(self):
         self.event_generate("<<ModeChange>>", when="tail")
-
 
     def options_changed(self):
         self.event_generate("<<OptionChange>>", when="tail")
@@ -91,7 +86,6 @@ class Actions(ttk.Frame):
     def __init__(self, parent):
         ttk.Frame.__init__(self, parent)
         self.__make_widgets()
-
 
     def __make_widgets(self):
         frm_1 = ttk.Frame(self)
@@ -119,7 +113,6 @@ class Actions(ttk.Frame):
             command=lambda: self.event_generate("<<Action-Quit>>"))
         btn_quit.pack(fill=tk.X)
 
-
     def set_copy_selected(self, selected):
         if selected:
             self.btn_copy.config(text="Copy Selected")
@@ -145,9 +138,9 @@ class TextWithSyntaxHighlighting(tk.Text):
             self.highlight_mode = mode
             self.highlight_syntax()
 
-
     def highlight_syntax(self):
-        if not self.highlight_mode: return
+        if not self.highlight_mode:
+            return
         for tag in ("keyword", "datetime", "grayed"):
             self.tag_remove(tag, "1.0", "end")
         if self.highlight_mode == 'ical':
@@ -156,7 +149,6 @@ class TextWithSyntaxHighlighting(tk.Text):
             self.highlight_csv()
         self.edit_modified(False)
 
-
     def highlight_vcalendar(self):
         count = tk.IntVar()
         start_idx = "1.0"
@@ -164,8 +156,9 @@ class TextWithSyntaxHighlighting(tk.Text):
             new_idx = self.search(
                 "(BEGIN|END):VEVENT",
                 start_idx, count=count, regexp=True,
-                stopindex = "end")
-            if not new_idx: break
+                stopindex="end")
+            if not new_idx:
+                break
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("keyword", new_idx, start_idx)
         start_idx = "1.0"
@@ -173,8 +166,9 @@ class TextWithSyntaxHighlighting(tk.Text):
             new_idx = self.search(
                 r"^[\w-]+:",
                 start_idx, count=count, regexp=True,
-                stopindex = "end")
-            if not new_idx: break
+                stopindex="end")
+            if not new_idx:
+                break
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("grayed", new_idx, start_idx)
         start_idx = "1.0"
@@ -182,11 +176,11 @@ class TextWithSyntaxHighlighting(tk.Text):
             new_idx = self.search(
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}",
                 start_idx, count=count, regexp=True,
-                stopindex = "end")
-            if not new_idx: break
+                stopindex="end")
+            if not new_idx:
+                break
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("datetime", new_idx, start_idx)
-
 
     def highlight_csv(self):
         count = tk.IntVar()
@@ -195,8 +189,9 @@ class TextWithSyntaxHighlighting(tk.Text):
             new_idx = self.search(
                 r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}",
                 start_idx, count=count, regexp=True,
-                stopindex = "end")
-            if not new_idx: break
+                stopindex="end")
+            if not new_idx:
+                break
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("datetime", new_idx, start_idx)
         start_idx = "1.0"
@@ -204,8 +199,9 @@ class TextWithSyntaxHighlighting(tk.Text):
             new_idx = self.search(
                 r'(:00)?[",]+',
                 start_idx, count=count, regexp=True,
-                stopindex = "end")
-            if not new_idx: break
+                stopindex="end")
+            if not new_idx:
+                break
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("grayed", new_idx, start_idx)
 
@@ -218,12 +214,11 @@ class MainWindow(ttk.Frame):
         try:
             with open(SETTINGS_FILE) as f:
                 self.settings = json.load(f)
-        except:
+        except Exception:
             self.settings = {}
         self.__make_widgets()
         self.txt.insert(tk.END, f"Version: {VERSION}")
         self.copy_mode = "all"
-
 
     def __make_widgets(self):
         self.columnconfigure(1, weight=1)
@@ -255,7 +250,6 @@ class MainWindow(ttk.Frame):
             self.act.bind(event, func)
         self.act.set_copy_selected(False)
 
-
     def __on_mode_change(self, _):
         self.settings['Role'] = self.ms.role.get()
         self.txt.delete('1.0', tk.END)
@@ -266,13 +260,13 @@ class MainWindow(ttk.Frame):
 
     def __on_selection_change(self, _):
         if self.txt.tag_ranges("sel"):
-            if self.copy_mode == "sel": return
+            if self.copy_mode == "sel":
+                return
             self.copy_mode = "sel"
             self.act.set_copy_selected(True)
         else:
             self.copy_mode = "all"
             self.act.set_copy_selected(False)
-
 
     def __import(self, _):
         assert self.ms.output_type.get() in ('csv', 'ical')
@@ -284,7 +278,6 @@ class MainWindow(ttk.Frame):
         except dr.DetailedRosterException as e:
             self.txt.delete('1.0', tk.END)
             messagebox.showerror("Error", str(e))
-
 
     def __roster_html(self):
         retval = ""
@@ -300,16 +293,16 @@ class MainWindow(ttk.Frame):
             try:
                 with open(fn) as f:
                     retval = f.read()
-            except:
+            except Exception:
                 raise dr.InputFileException
         return retval
-
 
     def __csv(self):
         txt = ""
         dutylist, crewlist_map = [], {}
         html = self.__roster_html()
-        if not html: return
+        if not html:
+            return
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
@@ -321,26 +314,25 @@ class MainWindow(ttk.Frame):
         crewlist_map = dr.crew(html, dutylist)
         fo = True if self.ms.role.get() == 'fo' else False
         txt = csv(dutylist, crewlist_map, fo)
-        if self.ms.with_header.get() == False:
+        if self.ms.with_header.get() is False:
             txt = txt.split("\n", 1)[1]
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'csv')
 
-
     def __ical(self):
         dutylist = []
         html = self.__roster_html()
-        if not html: return
+        if not html:
+            return
         dutylist = dr.duties(html)
         if not dutylist:
             self.txt.delete('1.0', tk.END)
             messagebox.showinfo('Duties', 'No relevant duties found')
             return
-        #note: normalise newlines for Text widget - will restore on output
+        # note: normalise newlines for Text widget - will restore on output
         txt = ical(dutylist).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
-
 
     def __copy(self, _):
         self.clipboard_clear()
@@ -349,15 +341,14 @@ class MainWindow(ttk.Frame):
         else:
             start, end = self.txt.tag_ranges("sel")
         text = self.txt.get(start, end)
-        if self.ms.output_type == 'ical': #ical requires DOS style line endings
+        if self.ms.output_type == 'ical':  # ical requires DOS line endings
             text = text.replace("\n", "\r\n")
         self.clipboard_append(text)
         messagebox.showinfo('Copy', 'Text copied to clipboard.')
 
-
     def __save(self, _):
         output_type = self.ms.output_type.get()
-        assert  output_type in ('csv', 'ical')
+        assert output_type in ('csv', 'ical')
         if output_type == 'csv':
             pathtype = 'csvSavePath'
             filetypes = (("CSV file", "*.csv"),
@@ -378,11 +369,10 @@ class MainWindow(ttk.Frame):
             self.settings[pathtype] = os.path.dirname(fn)
             with open(fn, "w", encoding="utf-8", newline='') as f:
                 text = self.txt.get('1.0', tk.END)
-                if output_type == 'ical': #ical needs DOS style line endings
+                if output_type == 'ical':  # ical needs DOS style line endings
                     text = text.replace("\n", "\r\n")
                 f.write(text)
-                messagebox.showinfo('Saved', f'Save complete.')
-
+                messagebox.showinfo('Saved', 'Save complete.')
 
     def destroy(self):
         with open(SETTINGS_FILE, "w") as f:
