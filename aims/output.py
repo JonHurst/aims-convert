@@ -62,7 +62,7 @@ def roster(duties: List[Duty]) -> str:
             elif sector.flags & SectorFlags.POSITIONING:
                 airports.append("[psn]")
             else:
-                off, on = sector.sched_start, sector.sched_finish
+                off, on = sector.off, sector.on
                 block += int((on - off).total_seconds()) // 60
             if sector.to:
                 airports.append(sector.to)
@@ -91,7 +91,7 @@ def freeform(
         output.append(f"{duty.start:%H%M}/{duty.finish:%H%M}{comment}")
         last_crew, last_reg = None, None
         for sector in duty.sectors:
-            if not sector.act_start or sector.flags != SectorFlags.NONE:
+            if not sector.off or sector.flags != SectorFlags.NONE:
                 continue
 
             # crewlist
@@ -110,7 +110,7 @@ def freeform(
             # sector
             output.append(
                 f"{sector.from_}/{sector.to} "
-                f"{sector.act_start:%H%M}/{sector.act_finish:%H%M}")
+                f"{sector.off:%H%M}/{sector.on:%H%M}")
         output.append("")
     return "\n".join(output)
 
@@ -123,7 +123,7 @@ def csv(
     output = io.StringIO(newline='')
     fieldnames = ['Off Blocks', 'On Blocks', 'Origin', 'Destination',
                   'Registration', 'Type', 'Captain', 'Role', 'Crew', 'Night']
-    fieldname_map = (('Off Blocks', 'act_start'), ('On Blocks', 'act_finish'),
+    fieldname_map = (('Off Blocks', 'off'), ('On Blocks', 'on'),
                      ('Origin', 'from_'), ('Destination', 'to'),
                      ('Registration', 'reg'), ('Type', 'type_'))
     writer = libcsv.DictWriter(
@@ -137,7 +137,7 @@ def csv(
             continue
         for sector in duty.sectors:
             if (sector.flags != SectorFlags.NONE
-                    or not (sector.act_start and sector.act_finish)):
+                    or not (sector.off and sector.on)):
                 continue
             sec_dict = sector._asdict()
             for fn, sfn in fieldname_map:
@@ -155,9 +155,9 @@ def csv(
             try:
                 night_duration = nightcalc.night_duration(
                     nvecs[sector.from_], nvecs[sector.to],
-                    sector.act_start, sector.act_finish)
+                    sector.off, sector.on)
                 duration = (
-                    sector.act_finish - sector.act_start).total_seconds() / 60
+                    sector.on - sector.off).total_seconds() / 60
                 sec_dict['Night'] = round(night_duration / duration, 3)
             except KeyError:  # raised by nvecs if airfields not found
                 sec_dict['Night'] = ""
@@ -206,7 +206,7 @@ def _build_dict(duty: Duty) -> Dict[str, str]:
                 airports.append("[psn]")
             if sector.to:
                 airports.append(sector.to)
-            off, on = sector.sched_start, sector.sched_finish
+            off, on = sector.off, sector.on
             from_to = ""
             if sector.from_ and sector.to:
                 from_to = f"{sector.from_}/{sector.to} "

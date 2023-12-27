@@ -28,10 +28,8 @@ class Sector(NamedTuple):
     name: str
     from_: Optional[str]
     to: Optional[str]
-    sched_start: dt.datetime
-    sched_finish: dt.datetime
-    act_start: Optional[dt.datetime]
-    act_finish: Optional[dt.datetime]
+    off: dt.datetime
+    on: dt.datetime
     reg: Optional[str]
     type_: Optional[str]
     flags: SectorFlags
@@ -40,8 +38,7 @@ class Sector(NamedTuple):
     def __repr__(self):
         return (f"Sector('{self.name}', "
                 f"'{self.from_}', '{self.to}', "
-                f"{repr(self.sched_start)}, {repr(self.sched_finish)}, "
-                f"{repr(self.act_start)}, {repr(self.act_finish)}, "
+                f"{repr(self.off)}, {repr(self.on)}, "
                 f"'{self.reg}', '{self.type_}', {repr(self.flags)}, "
                 f"'{self.crewlist_id}')").replace("'None'", "None")
 
@@ -434,7 +431,6 @@ def _sector(s, idx):
     return Sector(
         s[0].text, s[idx].text, s[idx + 1].text,
         s[idx - 1], s[idx + 2],
-        s[idx - 1], s[idx + 2],
         None, None, flags,
         f"{s[0].date:%Y%m%d}{s[0].text}~")
 
@@ -450,7 +446,7 @@ def _quasi_sector(s):
     else:
         start, finish = s[1], s[-1]
     return Sector(
-        name, None, None, start, finish, start, finish,
+        name, None, None, start, finish,
         None, None,
         SectorFlags.QUASI | SectorFlags.GROUND_DUTY,
         None)
@@ -539,7 +535,7 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
     ids = []
     for duty in dutylist:
         if duty.sectors:
-            ids.extend([f'{X.sched_start:%Y%m%dT%H%M}F{X.name}'
+            ids.extend([f'{X.off:%Y%m%dT%H%M}F{X.name}'
                         for X in duty.sectors
                         if X.flags == SectorFlags.NONE])
     try:
@@ -556,7 +552,7 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
             continue
         updated_sectors: list[Sector] = []
         for sec in duty.sectors:
-            flightid = f'{sec.sched_start:%Y%m%dT%H%M}F{sec.name}'
+            flightid = f'{sec.off:%Y%m%dT%H%M}F{sec.name}'
             if flightid in regntype_map:
                 reg, type_ = regntype_map[flightid]
                 updated_sectors.append(sec._replace(reg=reg, type_=type_))
