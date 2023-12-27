@@ -9,7 +9,8 @@ import aims.output as output
 
 def _args():
     parser = argparse.ArgumentParser(
-        description='Process an AIMS detailed roster into various useful formats.')
+        description=(
+            'Process an AIMS detailed roster into various useful formats.'))
     parser.add_argument('format', choices=['roster', 'freeform', 'csv', 'ical'])
     parser.add_argument('--fo', action="store_true")
     return parser.parse_args()
