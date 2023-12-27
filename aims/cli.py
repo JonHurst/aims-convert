@@ -46,34 +46,13 @@ def _args():
     parser = argparse.ArgumentParser(
         description='Access AIMS data from easyJet servers.')
     parser.add_argument('format', choices=['roster', 'freeform', 'csv', 'ical'])
-    parser.add_argument('target')
-    parser.add_argument('--file', '-f', action="store_true")
     parser.add_argument('--fo', action="store_true")
     return parser.parse_args()
 
 
 def main() -> int:
     args = _args()
-    s = ""
-    try:
-        if args.file:
-            with open(args.target, encoding="utf-8") as f:
-                s = f.read()
-        else:
-            aws_roster_path = os.environ.get("AWS_ROSTER_PATH")
-            aws_authstr = os.environ.get("AWS_AUTHSTR")
-            if aws_roster_path and aws_authstr:
-                r = requests.get(
-                    aws_roster_path + f"roster-{args.target}.htm",
-                    headers={"Authorization": f"Basic {aws_authstr}"})
-                r.raise_for_status()
-                s = r.text
-            else:
-                raise Exception("Bad environment")
-    except Exception as e:
-        print("Failed to load AIMS detailed roster")
-        print(e)
-        return -1
+    s = sys.stdin.read()
     dutylist = roster.duties(s)
     if args.format == "roster":
         print(output.roster(dutylist))
