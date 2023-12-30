@@ -45,12 +45,12 @@ class ModeSelector(ttk.Frame):
 
         self.frm_csv_settings = ttk.LabelFrame(self, text="Role")
         captain = ttk.Radiobutton(
-            self.frm_csv_settings, text="Captain",
+            self.frm_csv_settings, text=" Captain",
             variable=self.role, value='captain',
             command=self.role_changed)
         captain.pack(fill=tk.X)
         fo = ttk.Radiobutton(
-            self.frm_csv_settings, text="FO",
+            self.frm_csv_settings, text=" FO",
             variable=self.role, value='fo',
             command=self.role_changed)
         fo.pack(fill=tk.X)
@@ -58,7 +58,7 @@ class ModeSelector(ttk.Frame):
 
         self.frm_csv_options = ttk.LabelFrame(self, text="Options")
         with_header = ttk.Checkbutton(self.frm_csv_options,
-                                      text="Header",
+                                      text=" Header",
                                       variable=self.with_header,
                                       command=self.options_changed)
         with_header.pack(fill=tk.X)
