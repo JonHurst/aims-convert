@@ -10,7 +10,7 @@ import aims.roster as dr
 from aims.output import csv
 from aims.output import ical
 
-VERSION = 0.5
+VERSION = "1.1"
 
 SETTINGS_FILE = os.path.expanduser("~/.aimsgui")
 

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aims",
-    version="0.0.1",
+    version="1.1",
     author="Jon Hurst",
     author_email="jon.a@hursts.org.uk",
     description="Extract information from AIMS detailed roster",
