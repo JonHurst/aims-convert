@@ -7,7 +7,7 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster import Duty, SectorFlags, CrewMember
+from aims.roster import Duty, Sector, SectorFlags, CrewMember
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
@@ -39,6 +39,17 @@ def clean(name: str) -> str:
             new = new[:2] + new[2:].capitalize()
         parts[c] = new
     return " ".join([X for X in parts if X])
+
+
+def _night(sector: Sector) -> float:
+    try:
+        night_duration = nightcalc.night_duration(
+            nvecs[sector.from_], nvecs[sector.to],
+            sector.off, sector.on)
+    except KeyError:
+        return 0.0
+    duration = (sector.on - sector.off).total_seconds() / 60
+    return round(night_duration / duration, 3)
 
 
 def roster(duties: List[Duty]) -> str:
@@ -108,9 +119,11 @@ def freeform(
                 last_reg = sector.reg
 
             # sector
+            night_frac = _night(sector)
+            night_str = f" { night_frac:0.3}" if night_frac else ""
             output.append(
                 f"{sector.from_}/{sector.to} "
-                f"{sector.off:%H%M}/{sector.on:%H%M}")
+                f"{sector.off:%H%M}/{sector.on:%H%M}{night_str}")
         output.append("")
     return "\n".join(output)
 
@@ -152,15 +165,7 @@ def csv(
                     and sector.crewlist_id[-3:] in ("319", "320", "321")):
                 sec_dict['Type'] = f"{sector.crewlist_id[-3:]}"
             sec_dict['Crew'] = crewstr
-            try:
-                night_duration = nightcalc.night_duration(
-                    nvecs[sector.from_], nvecs[sector.to],
-                    sector.off, sector.on)
-                duration = (
-                    sector.on - sector.off).total_seconds() / 60
-                sec_dict['Night'] = round(night_duration / duration, 3)
-            except KeyError:  # raised by nvecs if airfields not found
-                sec_dict['Night'] = ""
+            sec_dict['Night'] = _night(sector)
             writer.writerow(sec_dict)
 
     output.seek(0)
