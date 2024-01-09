@@ -357,6 +357,87 @@ class Test_basic_stream(unittest.TestCase):
             p.basic_stream(datetime.date(2019, 5, 17), data),
             expected_result)
 
+    def test_duty_stradling_roster_start(self):
+        data = [
+            [
+                'May17\nFri', 'BRS', '00:44', '01:14', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', ''],
+        ]
+        # It is difficult to say what the correct result should be in this
+        # case. The entry looks just like a standby, with the only difference
+        # being the presence of an airport code rather than a standby code,
+        # i.e. you need to know that you won't be flying to e.g Salisbury
+        # Regional airport (SBY) to interpret it correctly. The best option,
+        # therefore, is to leave it looking like a standby and allow the user
+        # to pick it up.
+        expected_result = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 5, 17), text='BRS'),
+            datetime.datetime(2019, 5, 17, 0, 44),
+            datetime.datetime(2019, 5, 17, 1, 14),
+            p.Break.COLUMN
+        ]
+        with self.subTest("Sector split over midnight"):
+            self.assertEqual(
+                p.basic_stream(datetime.date(2019, 5, 17), data),
+                expected_result)
+        data = [
+            [
+                'May17\nFri', 'BRS', '23:45', '00:15', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', ''],
+        ]
+        # This is the dragover case, but at the start of the roster
+        expected_result = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 5, 17), text='BRS'),
+            datetime.datetime(2019, 5, 16, 23, 45),
+            datetime.datetime(2019, 5, 17, 0, 15),
+            p.Break.COLUMN
+        ]
+        with self.subTest("Sector split over midnight with dragover"):
+            self.assertEqual(
+                p.basic_stream(datetime.date(2019, 5, 17), data),
+                expected_result)
+        data = [
+            [
+                'May17\nFri', 'BRS', '24:00', '00:15', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', ''],
+        ]
+        # This is the dragover case, with the midnight bug
+        expected_result = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 5, 17), text='BRS'),
+            datetime.datetime(2019, 5, 17, 0, 0),
+            datetime.datetime(2019, 5, 17, 0, 15),
+            p.Break.COLUMN
+        ]
+        with self.subTest("Sector split over midnight with 24:00 dragover"):
+            self.assertEqual(
+                p.basic_stream(datetime.date(2019, 5, 17), data),
+                expected_result)
+        data = [
+            [
+                'May17\nFri', '00:10', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '', ''],
+        ]
+        # I've never seen this in the wild -- a standby ending after midnight
+        # on the first day of the roster.  The right thing to do is again
+        # questionable.  I've gone for keeping it in the stream and dealing with
+        # it on the conversion of the basic stream to a duty stream.
+        expected_result = [
+            p.Break.COLUMN,
+            datetime.datetime(2019, 5, 17, 0, 10),
+            p.Break.COLUMN
+        ]
+        with self.subTest("Standby split over midnight on first day"):
+            self.assertEqual(
+                p.basic_stream(datetime.date(2019, 5, 17), data),
+                expected_result)
+
 
 class Test_duty(unittest.TestCase):
 
@@ -934,6 +1015,57 @@ class TestDutyStream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 4, 29), text='BRS'),
             datetime.datetime(2019, 4, 29, 18, 8),
             datetime.datetime(2019, 4, 29, 18, 23)]
+        self.assertEqual(p.duty_stream(data), expected_result)
+
+    def test_standby_over_midnight(self):
+        data = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 4, 28), text='SBY'),
+            datetime.datetime(2019, 4, 27, 23, 0),
+            p.Break.COLUMN,
+            datetime.datetime(2019, 4, 28, 5, 0),
+            p.Break.COLUMN,
+        ]
+        expected_result = [
+            p.DStr(date=datetime.date(2019, 4, 28), text='SBY'),
+            datetime.datetime(2019, 4, 27, 23, 0),
+            datetime.datetime(2019, 4, 28, 5, 0),
+        ]
+        self.assertEqual(p.duty_stream(data), expected_result)
+
+    def test_sector_over_midnight_at_roster_start(self):
+        data = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 4, 28), text='BRS'),
+            datetime.datetime(2019, 4, 28, 1, 0),
+            datetime.datetime(2019, 4, 28, 1, 30),
+            p.Break.COLUMN,
+        ]
+        # It is impossible to distinguish this from a standby at the start of
+        # the day without resorting to a full list of either airport codes or
+        # standby codes. The best option is to leave it looking like a standby,
+        # with the standby code being the airport code
+        expected_result = [
+            p.DStr(date=datetime.date(2019, 4, 28), text='BRS'),
+            datetime.datetime(2019, 4, 28, 1, 0),
+            datetime.datetime(2019, 4, 28, 1, 30),
+        ]
+        self.assertEqual(p.duty_stream(data), expected_result)
+
+    def test_standby_over_midnight_at_roster_start(self):
+        data = [
+            p.Break.COLUMN,
+            datetime.datetime(2019, 4, 28, 5, 0),
+            p.Break.COLUMN,
+        ]
+        # This should be the only time that a single time is enclosed by
+        # breaks. What we should do is questionable. Faking a standby is my
+        # chosen option.
+        expected_result = [
+            p.DStr(date=datetime.date(2019, 4, 28), text='???'),
+            datetime.datetime(2019, 4, 28, 0, 0),
+            datetime.datetime(2019, 4, 28, 5, 0),
+        ]
         self.assertEqual(p.duty_stream(data), expected_result)
 
     def test_badstream(self):

@@ -343,6 +343,13 @@ def duty_stream(bstream):
                          if isinstance(X, Break)]
     assert bstream[0] == Break.COLUMN and bstream[-1] == Break.COLUMN
     dstream = bstream[:]
+    # A very unlikely case -- if the first column contains the tail end of a
+    # standby extending over midnight we insert fake data.
+    if (len(dstream) > 2
+            and isinstance(dstream[1], dt.datetime)
+            and isinstance(dstream[2], Break)):
+        d = dstream[1].date()
+        dstream[1:1] = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
     dstream = _remove_singles(dstream)
     dstream = _remove_intra_sector_column_breaks(dstream)
     dstream = _clean_sector_blocks(dstream)
