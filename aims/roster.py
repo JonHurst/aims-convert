@@ -66,9 +66,9 @@ class Duty(NamedTuple):
 class Break(enum.Enum):
     """Gaps between duties.
 
-    A Break of type LINE indicates a gap between duties in a roster column.  A
-    Break of type COLUMN indicates the gap between the end of one column and the
-    start of the next.  A Break of type DUTY indicates a gap where rest is
+    A Break of type LINE indicates a gap between duties in a roster column. A
+    Break of type COLUMN indicates the gap between the end of one column and
+    the start of the next. A Break of type DUTY indicates a gap where rest is
     taken.
     """
     LINE = 0
@@ -164,8 +164,9 @@ def extract_date(lines: list[list[str]]) -> dt.date:
     """
     Return the date as found in the Period: xx/xx/xxxx clause
 
-    The input is 'lines' format as detailed in the lines() docstring. The output
-    is a datetime.date object with the first day that the roster is applicable.
+    The input is 'lines' format as detailed in the lines() docstring. The
+    output is a datetime.date object with the first day that the roster is
+    applicable.
     """
     mo = re.search(r"Period: (\d{2}/\d{2}/\d{4})", lines[1][0])
     if not mo:
@@ -177,9 +178,9 @@ def columns(lines: list[Line]) -> list[Column]:
     """
     Convert 'lines' format input to 'columns' format output.
 
-    The input is 'lines' format as detailed in the lines() docstring. The output
-    is a list of columns built from the rows with 32 cells that occur before the
-    word Block is found in the row. It has the form:
+    The input is 'lines' format as detailed in the lines() docstring. The
+    output is a list of columns built from the rows with 32 cells that occur
+    before the word Block is found in the row. It has the form:
 
     [
         [Col0Cell0, Col0Cell1, ...],
@@ -253,10 +254,10 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
         stream += _process_column(col, date)
         stream.append(Break.COLUMN)
         date += dt.timedelta(1)
-    # there is a corner case where a sector finish time is dragged into the next
-    # column by a duty time finishing after midnight, and another where a sector
-    # time uses 24:00 as a start time but advances this to where 00:00 should
-    # correctly sit. To counteract these cases, make sure datetimes in a
+    # there is a corner case where a sector finish time is dragged into the
+    # next column by a duty time finishing after midnight, and another where a
+    # sector time uses 24:00 as a start time but advances this to where 00:00
+    # should correctly sit. To counteract these cases, make sure datetimes in a
     # reversed stream only ever decrease.
     stream.reverse()
     for c, event in enumerate(stream):
