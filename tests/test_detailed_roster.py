@@ -14,7 +14,8 @@ class Test_basic_stream(unittest.TestCase):
                 'FNC', '09:45', '(320)', '',
                 'EJU', '6246', '10:32', 'FNC', 'BRS', '13:59', '14:29',
                 '(320)', '', '', '', '', '',
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', ''],
             [
                 'Oct22\nTue', 'G\xa0EJU', '6205', '04:15', '05:12',
                 'BRS', 'SPU', '07:56', '(320)', '',
@@ -78,9 +79,9 @@ class Test_basic_stream(unittest.TestCase):
             ['Oct31\nThu', 'D/O', '', '', '', '', '', '', '', '', '', '', '',
              '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
              '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-             '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-             '', '', '']]
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+             '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+             '', '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
             p.DStr(date=datetime.date(2019, 10, 31), text='D/O'),
@@ -131,9 +132,9 @@ class Test_basic_stream(unittest.TestCase):
                 '', '', '', '', ''],
 
             [
-                'May20\nMon', 'D/O', '', '', '', '', '', '', '', '', '', '', '',
+                'May20\nMon', 'D/O', '', '', '', '', '', '', '', '', '', '',
                 '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-                '', '', '']]
+                '', '', '', '']]
         expected_result = [
             p.Break.COLUMN,
             p.DStr(date=datetime.date(2019, 5, 18), text='6045'),
@@ -425,8 +426,8 @@ class Test_basic_stream(unittest.TestCase):
                 '', '', '', '', '', '', '', '', '', ''],
         ]
         # I've never seen this in the wild -- a standby ending after midnight
-        # on the first day of the roster.  The right thing to do is again
-        # questionable.  I've gone for keeping it in the stream and dealing with
+        # on the first day of the roster. The right thing to do is again
+        # questionable. I've gone for keeping it in the stream and dealing with
         # it on the conversion of the basic stream to a duty stream.
         expected_result = [
             p.Break.COLUMN,
@@ -598,7 +599,8 @@ class Test_duty(unittest.TestCase):
                     'ADTY', None, None,
                     datetime.datetime(2016, 10, 22, 5, 0),
                     datetime.datetime(2016, 10, 22, 5, 5),
-                    None, None, p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
+                    None, None,
+                    p.SectorFlags.QUASI | p.SectorFlags.GROUND_DUTY,
                     None),
                 p.Sector(
                     '393', 'BRS', 'INV',
@@ -1148,7 +1150,8 @@ class TestCrew(unittest.TestCase):
                     p.Sector('6074', 'ALC', 'BRS',
                              datetime.datetime(2019, 4, 9, 19, 37),
                              datetime.datetime(2019, 4, 9, 22, 3),
-                             None, None, p.SectorFlags.NONE, '201904096074~'))),
+                             None, None, p.SectorFlags.NONE,
+                             '201904096074~'))),
             p.Duty(
                 p.TripID('14344', ''),
                 datetime.datetime(2019, 4, 10, 11, 45),
