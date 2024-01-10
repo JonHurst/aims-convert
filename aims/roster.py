@@ -232,7 +232,14 @@ def _process_column(col: Column, date: dt.date) -> RosterStream:
     return stream[1:]
 
 
-def _split_stream(stream, break_type):
+def _split_stream(stream, break_type) -> list(RosterStream):
+    """
+    Breaks up a stream of StreamItems into a list of substreams.
+
+    :param stream: The stream of StreamItems to split
+    :param break_type: The type of break to split the stream on
+    :return: A list of streams. The breaks are not included.
+    """
     groups = it.groupby(stream, lambda x: x == break_type)
     return [list(X[1]) for X in it.islice(groups, 0, None, 2)]
 
