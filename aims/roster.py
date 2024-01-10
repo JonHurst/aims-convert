@@ -43,16 +43,7 @@ class Sector(NamedTuple):
                 f"'{self.crewlist_id}')").replace("'None'", "None")
 
 
-class TripID(NamedTuple):
-    aims_day: str
-    trip: str
-
-    def __repr__(self):
-        return f"TripID('{self.aims_day}', '{self.trip}')"
-
-
 class Duty(NamedTuple):
-    trip_id: TripID
     start: dt.datetime
     finish: dt.datetime
     sectors: Optional[list[Sector]]
@@ -394,7 +385,6 @@ def _duty(stream):
             DStr(faketime.date(), "???"), faketime, faketime]
     if not isinstance(stream[0], DStr):
         raise SectorFormatException
-    tripid = (str((stream[0].date - dt.date(1980, 1, 1)).days), "")
     # split stream at sector breaks
     sector_streams = _split_stream(stream, Break.SECTOR)
     # duty times can now be extracted
@@ -411,7 +401,7 @@ def _duty(stream):
                 break
         else:  # no DStr objects found in expected range
             sectors.append(_quasi_sector(sector_stream))
-    return Duty(tripid, duty_start, duty_finish, tuple(sectors))
+    return Duty(duty_start, duty_finish, tuple(sectors))
 
 
 def _duty_times(sectors):

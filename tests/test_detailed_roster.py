@@ -458,7 +458,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2017, 10, 17, 14, 48),
             datetime.datetime(2017, 10, 17, 15, 18)]
         expected_result = p.Duty(
-            p.TripID('13804', ''),
             datetime.datetime(2017, 10, 17, 4, 30),
             datetime.datetime(2017, 10, 17, 15, 18),
             (
@@ -480,7 +479,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2017, 1, 17, 6, 15),
             datetime.datetime(2017, 1, 17, 14, 15)]
         expected_result = p.Duty(
-            p.TripID('13531', ''),
             datetime.datetime(2017, 1, 17, 6, 15),
             datetime.datetime(2017, 1, 17, 14, 15),
             (
@@ -506,7 +504,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2017, 10, 22, 21, 25),
             datetime.datetime(2017, 10, 22, 21, 40)]
         expected_result = p.Duty(
-            p.TripID('13809', ''),
             datetime.datetime(2017, 10, 22, 10, 0),
             datetime.datetime(2017, 10, 22, 21, 40),
             (
@@ -543,7 +540,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2016, 10, 31, 21, 39),
             p.DStr(datetime.date(2016, 10, 31), 'ALC')]
         expected_result = p.Duty(
-            p.TripID('13453', ''),
             datetime.datetime(2016, 10, 31, 15, 30),
             datetime.datetime(2016, 11, 1, 0, 0),
             (
@@ -591,7 +587,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2016, 10, 22, 11, 13),
             datetime.datetime(2016, 10, 22, 11, 43)]
         expected_result = p.Duty(
-            p.TripID('13444', ''),
             datetime.datetime(2016, 10, 22, 5, 0),
             datetime.datetime(2016, 10, 22, 11, 43),
             (
@@ -642,7 +637,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2017, 5, 28, 23, 45),
             datetime.datetime(2017, 5, 28, 23, 45)]
         expected_result = p.Duty(
-            p.TripID('13662', ''),
             datetime.datetime(2017, 5, 28, 13, 15),
             datetime.datetime(2017, 5, 28, 23, 45),
             (
@@ -690,7 +684,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2017, 8, 7, 2, 46),
             datetime.datetime(2017, 8, 7, 3, 16)]
         expected_result = p.Duty(
-            p.TripID('13732', ''),
             datetime.datetime(2017, 8, 6, 12, 40),
             datetime.datetime(2017, 8, 7, 3, 16),
             (
@@ -724,7 +717,6 @@ class Test_duty(unittest.TestCase):
             datetime.datetime(2019, 10, 28, 22, 30),
             datetime.datetime(2019, 10, 28, 23, 30)]
         expected_result = p.Duty(
-            p.TripID('14545', ''),
             datetime.datetime(2019, 10, 28, 17, 0),
             datetime.datetime(2019, 10, 28, 23, 30),
             (
@@ -1139,7 +1131,6 @@ class TestCrew(unittest.TestCase):
         ]
         duties = [
             p.Duty(
-                p.TripID('14343', ''),
                 datetime.datetime(2019, 4, 9, 15, 30),
                 datetime.datetime(2019, 4, 9, 22, 33),
                 (
@@ -1153,7 +1144,6 @@ class TestCrew(unittest.TestCase):
                              None, None, p.SectorFlags.NONE,
                              '201904096074~'))),
             p.Duty(
-                p.TripID('14344', ''),
                 datetime.datetime(2019, 4, 10, 11, 45),
                 datetime.datetime(2019, 4, 10, 22, 6),
                 (
@@ -1174,7 +1164,6 @@ class TestCrew(unittest.TestCase):
                              datetime.datetime(2019, 4, 10, 21, 36),
                              None, None, p.SectorFlags.NONE, '20190410569~'))),
             p.Duty(
-                p.TripID('14345', ''),
                 datetime.datetime(2019, 4, 11, 11, 20),
                 datetime.datetime(2019, 4, 11, 22, 20),
                 (
