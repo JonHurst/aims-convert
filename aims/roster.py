@@ -193,7 +193,21 @@ def columns(lines: list[Line]) -> list[Column]:
     return columns
 
 
-def _process_column(col: list[str], date: dt.date):
+def _process_column(col: Column, date: dt.date) -> RosterStream:
+    """
+    Converts the strings found in a column into a list of StreamItems. Strings
+    of the form HH:MM are converted to datetimes and runs of empty strings are
+    each converted to a single LINE break. Everything else is converted to a
+    DStr (dated string) by tagging it with the date.
+
+    The "24:00" bug is also handled at this point by converting it to 00:00 on
+    the following day.
+
+    :param col: The Column to process.
+    :param date: The date to apply to entries in the column
+
+    :return: A list of StreamItems. Leading and trailing Breaks are removed.
+    """
     assert False not in [isinstance(X, str) for X in col[1:]]
     stream: list[StreamItem] = [Break.COLUMN]
     for entry in col[1:]:
