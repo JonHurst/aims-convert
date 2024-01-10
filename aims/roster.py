@@ -118,7 +118,6 @@ class RosterParser(HTMLParser):
             self.in_td = False
         elif tag == "tr":
             self.output_list.append([])
-        pass
 
     def handle_data(self, data):
         if self.in_td:
