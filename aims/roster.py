@@ -232,7 +232,7 @@ def _process_column(col: Column, date: dt.date) -> RosterStream:
     return stream[1:]
 
 
-def _split_stream(stream, break_type) -> list(RosterStream):
+def _split_stream(stream, break_type) -> list[RosterStream]:
     """
     Breaks up a stream of StreamItems into a list of substreams.
 
