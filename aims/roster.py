@@ -283,8 +283,16 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
     return stream
 
 
-def _remove_singles(dstream: list[StreamItem]) -> list[StreamItem]:
-    """Remove single DStr surrounded by Breaks"""
+def _remove_single_dstrs(dstream: list[StreamItem]) -> list[StreamItem]:
+    """
+    Remove single DStr surrounded by Breaks. These DStrs will either be all day
+    style duties such as days off or part time days, miscellaneous other
+    strings such as SNCR, REST etc. or things like Ms to mark memos. These are
+    impossible to reliably tell apart, so we just drop them.
+
+    :param dstream: The list to process
+    :return: The processed list
+    """
     keep_list = [True] * len(dstream)
     for c in range(1, len(dstream) - 1):
         if (isinstance(dstream[c], DStr)
@@ -362,7 +370,7 @@ def duty_stream(bstream):
             and isinstance(dstream[2], Break)):
         d = dstream[1].date()
         dstream[1:1] = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
-    dstream = _remove_singles(dstream)
+    dstream = _remove_single_dstrs(dstream)
     dstream = _remove_intra_sector_column_breaks(dstream)
     dstream = _clean_sector_blocks(dstream)
     # remaining Break objects are either duty breaks if separated by more
