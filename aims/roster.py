@@ -357,6 +357,47 @@ def _clean_sector_blocks(
     return list(it.compress(dstream, keep))
 
 
+def _fix_edges(stream: list[StreamItem]) -> list[StreamItem]:
+    """Fix cases where a duty straddles midnight at start or end of the roster
+    by inserting fake data with a "???" marker.
+
+    At the start of the roster, a single datetime followed by a break indicates
+    that a standby-like duty has straddled midnight. A DStr followed by two
+    datetimes may indicate that a sector is straddling midnight, but may also
+    just be a standby. In the first case we insert the fake data, in the second
+    we cannot tell what to do, so we just let it process as a standby.
+
+    At the end of the roster, we would normally expect two datetimes or an
+    isolated DStr. If there is instead a DStr without a preceeding break, we
+    have a sector straddling midnight. If we have a datetime preceeded by a
+    DStr be have a standby straddling midnight.
+
+    :param list: A basic stream to be fixed. All single DStrs (i.e. DStrs
+        surrounded by breaks) must have already been removed.
+    :return: A copy of the input stream with the edges fixed as necessary
+
+    """
+    if len(stream) < 3:
+        return stream
+    fake_start: list[StreamItem] = []
+    fake_end: list[StreamItem] = []
+    if isinstance(stream[1], dt.datetime):
+        if isinstance(stream[2], Break):
+            d = stream[1].date()
+            fake_start = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
+        else:
+            raise SectorFormatException
+    if (isinstance(stream[-2], DStr)
+            and not isinstance(stream[-3], Break)):
+        d = stream[-2].date + dt.timedelta(1)
+        fake_end = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
+    elif (isinstance(stream[-2], dt.datetime)
+              and isinstance(stream[-3], DStr)):
+        d = stream[-2].date() + dt.timedelta(1)
+        fake_end = [dt.datetime.combine(d, dt.time())]
+    return [Break.COLUMN] + fake_start + stream[1:-1] + fake_end + [Break.COLUMN]
+
+
 def duty_stream(bstream):
     """Process a basic stream into a duty stream.
 
@@ -378,14 +419,10 @@ def duty_stream(bstream):
     assert False not in [X in (Break.LINE, Break.COLUMN) for X in bstream
                          if isinstance(X, Break)]
     assert bstream[0] == Break.COLUMN and bstream[-1] == Break.COLUMN
+    if len(bstream) <= 2:
+        return bsteam
     dstream = bstream[:]
-    # A very unlikely case -- if the first column contains the tail end of a
-    # standby extending over midnight we insert fake data.
-    if (len(dstream) > 2
-            and isinstance(dstream[1], dt.datetime)
-            and isinstance(dstream[2], Break)):
-        d = dstream[1].date()
-        dstream[1:1] = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
+    dstream = _fix_edges(dstream)
     dstream = _remove_single_dstrs(dstream)
     dstream = _remove_column_breaks_before_times(dstream)
     dstream = _clean_sector_blocks(dstream)
@@ -418,15 +455,6 @@ def _duty(stream):
                          for X in stream]
     if len(stream) <= 1:
         return None  # empty stream or some sort of day off
-    # the end of the last duty may not be included on the roster if it finishes
-    # after midnight. For consistency, fake the end of this duty if necessary
-    if (isinstance(stream[-1], DStr)
-            and isinstance(stream[-2], dt.datetime)):
-        faketime = dt.datetime.combine(
-            stream[-2].date() + dt.timedelta(days=1),
-            dt.time.min)
-        stream = list(stream) + [
-            DStr(faketime.date(), "???"), faketime, faketime]
     if not isinstance(stream[0], DStr):
         raise SectorFormatException
     # split stream at sector breaks
