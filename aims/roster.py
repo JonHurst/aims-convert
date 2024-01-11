@@ -358,13 +358,19 @@ def _clean_sector_blocks(
 
 
 def duty_stream(bstream):
-    """Processed an basic stream into a duty stream.
+    """Process a basic stream into a duty stream.
+
+    A duty stream is a cleaned up basic stream with Break.LINE and Break.COLUMN
+    objects removed or replaced with Break.SECTOR or Break.DUTY objects. The
+    duty stream is a much more regular data structure than the basic stream,
+    and should be clean enough to allow straightforward processing into lists
+    of Duty objects.
 
     :param bstream: A stream of datetime, DStr and Break objects, where
         the Break objects are either Break.LINE or Break.COLUMN
-
-    :return: A duty stream: a stream of datetime, DStr and Break objects,
+    :return: A duty stream: a clean stream of datetime, DStr and Break objects,
          where the Break objects are either Break.SECTOR or Break.DUTY
+
     """
     assert isinstance(bstream, (list, tuple))
     assert False not in [isinstance(X, (DStr, Break, dt.datetime))
