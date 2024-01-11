@@ -144,13 +144,13 @@ def lines(roster: str) -> list[Line]:
     return parser.output_list
 
 
-def extract_date(lines: list[list[str]]) -> dt.date:
+def extract_date(lines: list[Line]) -> dt.date:
     """
-    Return the date as found in the Period: xx/xx/xxxx clause
+    Return the date as found in the Period: xx/xx/xxxx clause on the first line
+    of the roster.
 
-    The input is 'lines' format as detailed in the lines() docstring. The
-    output is a datetime.date object with the first day that the roster is
-    applicable.
+    :param lines: A list of Line objects, as output by the lines function.
+    :return: The full date of the first column of the main table of the roster.
     """
     mo = re.search(r"Period: (\d{2}/\d{2}/\d{4})", lines[1][0])
     if not mo:
@@ -160,18 +160,12 @@ def extract_date(lines: list[list[str]]) -> dt.date:
 
 def columns(lines: list[Line]) -> list[Column]:
     """
-    Convert 'lines' format input to 'columns' format output.
+    Extract the main table in the form of a list of Column objects. A Column
+    object is a list of the strings, top to bottom, found in a single column of
+    the main table of an AIMS roster.
 
-    The input is 'lines' format as detailed in the lines() docstring. The
-    output is a list of columns built from the rows with 32 cells that occur
-    before the word Block is found in the row. It has the form:
-
-    [
-        [Col0Cell0, Col0Cell1, ...],
-        [Col1Cell0, Col1Cell1, ...],
-        ...
-        [ColNCell0, ColNCell1, ...]
-    ]
+    :param lines: An AIMS roster in the form output from the lines function.
+    :return: A list of Column objects, one Column for each day.
     """
     # assumption: main table starts on row 5 of the page 1 table
     width = len(lines[5])
