@@ -74,8 +74,6 @@ class DStr(NamedTuple):
 
 
 StreamItem = Union[DStr, Break, dt.datetime]
-RosterStream = list[StreamItem]
-DutyStream = list[StreamItem]
 Column = list[str]
 Line = list[str]
 
@@ -180,7 +178,7 @@ def columns(lines: list[Line]) -> list[Column]:
     return columns
 
 
-def _process_column(col: Column, date: dt.date) -> RosterStream:
+def _process_column(col: Column, date: dt.date) -> list[StreamItem]:
     """
     Converts the strings found in a column into a list of StreamItems. Strings
     of the form HH:MM are converted to datetimes and runs of empty strings are
@@ -219,7 +217,7 @@ def _process_column(col: Column, date: dt.date) -> RosterStream:
     return stream[1:]
 
 
-def _split_stream(stream, break_type) -> list[RosterStream]:
+def _split_stream(stream, break_type) -> list[list[StreamItem]]:
     """
     Breaks up a stream of StreamItems into a list of substreams.
 
@@ -231,7 +229,7 @@ def _split_stream(stream, break_type) -> list[RosterStream]:
     return [list(X[1]) for X in it.islice(groups, 0, None, 2)]
 
 
-def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
+def basic_stream(date: dt.date, columns: list[Column]) -> list[StreamItem]:
     """Concatenates columns into a stream of datetime, DStr and Break objects
 
     :date: The date of the first column
@@ -243,7 +241,7 @@ def basic_stream(date: dt.date, columns: list[Column]) -> RosterStream:
         from this function includes COLUMN and LINE breaks, but no DUTY breaks.
     """
     assert isinstance(date, dt.date) and isinstance(columns, (list, tuple))
-    stream: RosterStream = [Break.COLUMN]
+    stream: list[StreamItem] = [Break.COLUMN]
     for col in columns:
         assert isinstance(col, (list, tuple))
         if len(col) < 2:
@@ -392,10 +390,11 @@ def _fix_edges(stream: list[StreamItem]) -> list[StreamItem]:
         d = stream[-2].date + dt.timedelta(1)
         fake_end = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
     elif (isinstance(stream[-2], dt.datetime)
-              and isinstance(stream[-3], DStr)):
+          and isinstance(stream[-3], DStr)):
         d = stream[-2].date() + dt.timedelta(1)
         fake_end = [dt.datetime.combine(d, dt.time())]
-    return [Break.COLUMN] + fake_start + stream[1:-1] + fake_end + [Break.COLUMN]
+    return ([Break.COLUMN] + fake_start + stream[1:-1]
+            + fake_end + [Break.COLUMN])
 
 
 def duty_stream(bstream):
