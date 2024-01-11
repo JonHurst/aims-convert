@@ -314,7 +314,21 @@ def _remove_column_breaks_before_times(
 def _clean_sector_blocks(
         dstream: list[StreamItem]
 ) -> list[StreamItem]:
-    """Clean up sector blocks, including column break removal"""
+    """Clean up sector blocks, including intra-sector column break removal.
+
+    Sector blocks are often liberally sprinkled with extra information such as
+    the type of aircraft assigned or various training codes. They may straddle
+    midnight, and thus contain a column break. This algorithm first identifies
+    the "from" cell as a DStr immediately preceded by a datetime. The sector
+    identifier is then the nearest DStr above and the "to" cell is nearest DStr
+    below that is immediately followed by a datetime. All other DStr and breaks
+    within the sector block can be discarded.
+
+    :param dstream: A list of StreamItems where the breaks are Break.Line or
+        Break.Column.
+    :return: A copy of the input stream with extraneous information removed
+        from sector blocks.
+    """
     keep = [True] * len(dstream)
     in_sector = False
     for c in range(1, len(dstream) - 1):
