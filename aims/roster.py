@@ -296,7 +296,7 @@ def _remove_column_breaks_before_times(
 ) -> list[StreamItem]:
     """Remove column breaks that are immediately followed by a dt.datetime.
     This should only occur when a standby duty or something like an LPC
-    stradles midnight.
+    straddles midnight.
 
     :param dstream: A list of StreamItems where any breaks are either
         Break.LINE or Break.COLUMN
