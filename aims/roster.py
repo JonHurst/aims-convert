@@ -359,18 +359,19 @@ def _clean_sector_blocks(
 
 def _fix_edges(stream: list[StreamItem]) -> list[StreamItem]:
     """Fix cases where a duty straddles midnight at start or end of the roster
-    by inserting fake data with a "???" marker.
+    by inserting fake data, possibly with a "???" marker.
 
     At the start of the roster, a single datetime followed by a break indicates
     that a standby-like duty has straddled midnight. A DStr followed by two
     datetimes may indicate that a sector is straddling midnight, but may also
-    just be a standby. In the first case we insert the fake data, in the second
-    we cannot tell what to do, so we just let it process as a standby.
+    just be something like a standby. In the first case we insert the fake
+    data, in the second we cannot tell what to do, so we just let it process as
+    a standby would.
 
-    At the end of the roster, we would normally expect two datetimes or an
-    isolated DStr. If there is instead a DStr without a preceeding break, we
-    have a sector straddling midnight. If we have a datetime preceeded by a
-    DStr be have a standby straddling midnight.
+    At the end of the roster, we would normally expect two datetimes. If there
+    is, instead, a DStr, we must have a sector straddling midnight since the
+    input will already have any singleton DStrs stripped. If we have a datetime
+    preceeded by a DStr be have a standby straddling midnight.
 
     :param list: A basic stream to be fixed. All single DStrs (i.e. DStrs
         surrounded by breaks) must have already been removed.
@@ -387,8 +388,7 @@ def _fix_edges(stream: list[StreamItem]) -> list[StreamItem]:
             fake_start = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
         else:
             raise SectorFormatException
-    if (isinstance(stream[-2], DStr)
-            and not isinstance(stream[-3], Break)):
+    if isinstance(stream[-2], DStr):
         d = stream[-2].date + dt.timedelta(1)
         fake_end = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
     elif (isinstance(stream[-2], dt.datetime)
@@ -422,8 +422,8 @@ def duty_stream(bstream):
     if len(bstream) <= 2:
         return bsteam
     dstream = bstream[:]
-    dstream = _fix_edges(dstream)
     dstream = _remove_single_dstrs(dstream)
+    dstream = _fix_edges(dstream)
     dstream = _remove_column_breaks_before_times(dstream)
     dstream = _clean_sector_blocks(dstream)
     # remaining Break objects are either duty breaks if separated by more
