@@ -291,10 +291,18 @@ def _remove_single_dstrs(dstream: list[StreamItem]) -> list[StreamItem]:
     return list(it.compress(dstream, keep_list))
 
 
-def _remove_intra_sector_column_breaks(
+def _remove_column_breaks_before_times(
         dstream: list[StreamItem]
 ) -> list[StreamItem]:
-    """Remove column breaks that are immediately followed by a dt.datetime"""
+    """Remove column breaks that are immediately followed by a dt.datetime.
+    This should only occur when a standby duty or something like an LPC
+    stradles midnight.
+
+    :param dstream: A list of StreamItems where any breaks are either
+        Break.LINE or Break.COLUMN
+    :return: A copy of the input list with any Break.COLUMN items occuring
+        immediately before a datetime having been removed.
+    """
     keep_list = [True] * len(dstream)
     for c in range(1, len(dstream) - 1):
         if dstream[c] == Break.COLUMN and isinstance(
@@ -359,7 +367,7 @@ def duty_stream(bstream):
         d = dstream[1].date()
         dstream[1:1] = [DStr(d, "???"), dt.datetime.combine(d, dt.time())]
     dstream = _remove_single_dstrs(dstream)
-    dstream = _remove_intra_sector_column_breaks(dstream)
+    dstream = _remove_column_breaks_before_times(dstream)
     dstream = _clean_sector_blocks(dstream)
     # remaining Break objects are either duty breaks if separated by more
     # than 8 hours, else they are sector breaks
