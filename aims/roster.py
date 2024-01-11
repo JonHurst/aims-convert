@@ -441,13 +441,11 @@ def duty_stream(bstream):
 
 
 def _duty(stream):
-    """Converts a 'Duty stream' into a list of aimslib Duty objects'
+    """Converts a stream representing a single duty into a Duty object
 
-    :param duty_stream: A stream of DStr, datetime and Break objects, with
-        each stream representing one complete duty, i.e. all Break objects
-        must be Break.SECTOR only.
-
-    :returns: An aimslib Duty object
+    :param stream: A list of StreamItems representing a single duty, i.e. the
+        only Break objects must be Break.SECTOR.
+    :returns: The Duty object
     """
     assert isinstance(stream, (list, tuple))
     assert False not in [type(X) in (DStr, dt.datetime, Break)
@@ -456,11 +454,8 @@ def _duty(stream):
         return None  # empty stream or some sort of day off
     if not isinstance(stream[0], DStr):
         raise SectorFormatException
-    # split stream at sector breaks
     sector_streams = _split_stream(stream, Break.SECTOR)
-    # duty times can now be extracted
     duty_start, duty_finish = _duty_times(sector_streams)
-    # build sector list
     sectors = []
     for sector_stream in sector_streams:
         if not sector_stream or not isinstance(sector_stream[0], DStr):
