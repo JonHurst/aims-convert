@@ -538,7 +538,9 @@ class Test_duty(unittest.TestCase):
             p.Break.SECTOR,
             p.DStr(datetime.date(2016, 10, 31), '6074'),
             datetime.datetime(2016, 10, 31, 21, 39),
-            p.DStr(datetime.date(2016, 10, 31), 'ALC')]
+            p.DStr(datetime.date(2016, 10, 31), 'ALC'),
+            p.DStr(datetime.date(2016, 11, 1), '???'),
+            datetime.datetime(2016, 11, 1, 0, 0),]
         expected_result = p.Duty(
             datetime.datetime(2016, 10, 31, 15, 30),
             datetime.datetime(2016, 11, 1, 0, 0),
@@ -1059,6 +1061,53 @@ class TestDutyStream(unittest.TestCase):
             p.DStr(date=datetime.date(2019, 4, 28), text='???'),
             datetime.datetime(2019, 4, 28, 0, 0),
             datetime.datetime(2019, 4, 28, 5, 0),
+        ]
+        self.assertEqual(p.duty_stream(data), expected_result)
+
+    def test_standby_over_midnight_at_roster_end(self):
+        data = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 4, 28), text='SBY'),
+            datetime.datetime(2019, 4, 27, 23, 0),
+            p.Break.COLUMN,]
+        expected_result = [
+            p.DStr(date=datetime.date(2019, 4, 28), text='SBY'),
+            datetime.datetime(2019, 4, 27, 23, 0),
+            datetime.datetime(2019, 4, 28, 0, 0),
+        ]
+        self.assertEqual(p.duty_stream(data), expected_result)
+
+    def test_sector_over_midnight_at_roster_end(self):
+        data = [
+            p.Break.COLUMN,
+            p.DStr(date=datetime.date(2019, 5, 18), text='6045'),
+            datetime.datetime(2019, 5, 18, 17, 45),
+            datetime.datetime(2019, 5, 18, 18, 45),
+            p.DStr(date=datetime.date(2019, 5, 18), text='BRS'),
+            p.DStr(date=datetime.date(2019, 5, 18), text='PMI'),
+            datetime.datetime(2019, 5, 18, 21, 0),
+            p.Break.LINE,
+            p.DStr(date=datetime.date(2019, 5, 18), text='6046'),
+            datetime.datetime(2019, 5, 18, 21, 35),
+            p.DStr(date=datetime.date(2019, 5, 18), text='PMI'),
+            p.DStr(date=datetime.date(2019, 5, 18), text='(320)'),
+            p.Break.LINE,
+            p.DStr(date=datetime.date(2019, 5, 18), text='M'),
+            p.Break.COLUMN,
+        ]
+        expected_result = [
+            p.DStr(date=datetime.date(2019, 5, 18), text='6045'),
+            datetime.datetime(2019, 5, 18, 17, 45),
+            datetime.datetime(2019, 5, 18, 18, 45),
+            p.DStr(date=datetime.date(2019, 5, 18), text='BRS'),
+            p.DStr(date=datetime.date(2019, 5, 18), text='PMI'),
+            datetime.datetime(2019, 5, 18, 21, 0),
+            p.Break.SECTOR,
+            p.DStr(date=datetime.date(2019, 5, 18), text='6046'),
+            datetime.datetime(2019, 5, 18, 21, 35),
+            p.DStr(date=datetime.date(2019, 5, 18), text='PMI'),
+            p.DStr(date=datetime.date(2019, 5, 19), text='???'),
+            datetime.datetime(2019, 5, 19, 0, 0),
         ]
         self.assertEqual(p.duty_stream(data), expected_result)
 
