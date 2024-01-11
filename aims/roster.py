@@ -49,8 +49,7 @@ class Duty(NamedTuple):
     sectors: Optional[list[Sector]]
 
     def __repr__(self):
-        return (f"Duty({self.trip_id}, "
-                f"{repr(self.start)}, {repr(self.finish)}, "
+        return (f"{repr(self.start)}, {repr(self.finish)}, "
                 f"{self.sectors})")
 
 
