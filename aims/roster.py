@@ -470,7 +470,15 @@ def _duty(stream):
     return Duty(duty_start, duty_finish, tuple(sectors))
 
 
-def _duty_times(sectors):
+def _duty_times(sectors: list[list[StreamItem]]
+                ) -> tuple[dt.datetime, dt.datetime]:
+    """Extract duty times from a list of sector streams
+
+    :param sectors: A list of StreamItems lists, where each StreamItem list
+        represents a single sector, i.e. it doesn't contain any Breaks.
+   :return: A tuple pair, where the first item is the start time of the duty
+        and the second is the end time of the duty.
+    """
     # duty times can be extracted from first and last sectors
     if not (isinstance(sectors[0][1], dt.datetime)
             and isinstance(sectors[-1][-1], dt.datetime)):
