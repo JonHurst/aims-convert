@@ -485,25 +485,36 @@ def _duty_times(sectors: list[list[StreamItem]]
     return (sectors[0][1], sectors[-1][-1])
 
 
-def _sector(s, idx):
-    # 'from' is at s[idx], thus s[idx + 1] should be 'to', s[idx - 1] should be
-    # 'off blocks' and s[idx + 2] should be 'on blocks'
-    if (idx == 1 or idx + 2 >= len(s)
-            or not isinstance(s[idx + 1], DStr)
-            or not isinstance(s[idx - 1], dt.datetime)
-            or not isinstance(s[idx + 2], dt.datetime)):
+def _sector(s: list[StreamItem], idx: int) -> Sector:
+    """Create a Sector object from a list of StreamItems
+
+    :param s: A list of StreamItems representing a single sector, i.e. there
+        can't be any Break objects in the stream.
+    :param idx: The index of the from_ Dstr
+    :return: A Sector object
+    :raises SectorFormatException:
+    """
+    if idx == 1 or idx + 2 >= len(s):
         raise SectorFormatException
-    flags = SectorFlags.NONE
-    if s[idx].text[0] == "*":
-        s[idx] = DStr(s[idx].date, s[idx].text[1:])
-        flags |= SectorFlags.POSITIONING
-    if s[0].text == "TAXI":
-        flags |= SectorFlags.GROUND_DUTY
-    return Sector(
-        s[0].text, s[idx].text, s[idx + 1].text,
-        s[idx - 1], s[idx + 2],
-        None, None, flags,
-        f"{s[0].date:%Y%m%d}{s[0].text}~")
+    id, off, from_, to, on = s[0], s[idx - 1], s[idx], s[idx + 1], s[idx + 2]
+    if (isinstance(id, DStr)
+            and isinstance(off, dt.datetime)
+            and isinstance(from_, DStr)
+            and isinstance(to, DStr)
+            and isinstance(on, dt.datetime)):
+        flags = SectorFlags.NONE
+        if from_.text[0] == "*":
+            from_ = DStr(from_.date, from_.text[1:])
+            flags |= SectorFlags.POSITIONING
+        if id.text == "TAXI":
+            flags |= SectorFlags.GROUND_DUTY
+        return Sector(
+            id.text, from_.text, to.text,
+            off, on,
+            None, None, flags,
+            f"{id.date:%Y%m%d}{id.text}~")
+    else:
+        raise SectorFormatException
 
 
 def _quasi_sector(s):
