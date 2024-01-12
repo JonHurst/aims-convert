@@ -320,7 +320,13 @@ def _clean_sector_blocks(
     for c in range(1, len(dstream) - 1):
         if not keep[c]:
             continue
-        if in_sector:
+        if not in_sector:
+            if isinstance(dstream[c], DStr):
+                if isinstance(dstream[c - 1], dt.datetime):  # "from" found
+                    in_sector = True
+                elif isinstance(dstream[c - 1], DStr):
+                    keep[c - 1] = False  # remove extra DStrs at start
+        else:
             if dstream[c] == Break.LINE:
                 raise SectorFormatException
             if (isinstance(dstream[c], DStr)
@@ -334,12 +340,6 @@ def _clean_sector_blocks(
                     i += 1
             else:
                 keep[c] = False  # remove column breaks and extra DStrs
-        else:  # not in sector
-            if isinstance(dstream[c], DStr):
-                if isinstance(dstream[c - 1], dt.datetime):  # "from" found
-                    in_sector = True
-                elif isinstance(dstream[c - 1], DStr):
-                    keep[c - 1] = False  # remove extra DStrs at start
     return list(it.compress(dstream, keep))
 
 
