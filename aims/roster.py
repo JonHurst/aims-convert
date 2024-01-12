@@ -33,24 +33,13 @@ class Sector(NamedTuple):
     reg: Optional[str]
     type_: Optional[str]
     flags: SectorFlags
-    crewlist_id: str
-
-    def __repr__(self):
-        return (f"Sector('{self.name}', "
-                f"'{self.from_}', '{self.to}', "
-                f"{repr(self.off)}, {repr(self.on)}, "
-                f"'{self.reg}', '{self.type_}', {repr(self.flags)}, "
-                f"'{self.crewlist_id}')").replace("'None'", "None")
+    crewlist_id: Optional[str]
 
 
 class Duty(NamedTuple):
     start: dt.datetime
     finish: dt.datetime
-    sectors: Optional[list[Sector]]
-
-    def __repr__(self):
-        return (f"{repr(self.start)}, {repr(self.finish)}, "
-                f"{self.sectors})")
+    sectors: tuple[Sector, ...]
 
 
 class Break(enum.Enum):
@@ -455,18 +444,8 @@ def _duty(stream):
         raise SectorFormatException
     sector_streams = _split_stream(stream, Break.SECTOR)
     duty_start, duty_finish = _duty_times(sector_streams)
-    sectors = []
-    for sector_stream in sector_streams:
-        if not sector_stream or not isinstance(sector_stream[0], DStr):
-            raise SectorFormatException
-        # determine whether 'normal' sector by presence of DStr object
-        for c, e in enumerate(sector_stream[1:-2]):
-            if isinstance(e, DStr):
-                sectors.append(_sector(sector_stream, c + 1))
-                break
-        else:  # no DStr objects found in expected range
-            sectors.append(_quasi_sector(sector_stream))
-    return Duty(duty_start, duty_finish, tuple(sectors))
+    sectors = tuple(_sector(X) for X in sector_streams)
+    return Duty(duty_start, duty_finish, sectors)
 
 
 def _duty_times(sectors: list[list[StreamItem]]
@@ -485,53 +464,50 @@ def _duty_times(sectors: list[list[StreamItem]]
     return (sectors[0][1], sectors[-1][-1])
 
 
-def _sector(s: list[StreamItem], idx: int) -> Sector:
+def _sector(s: list[StreamItem]) -> Sector:
     """Create a Sector object from a list of StreamItems
 
     :param s: A list of StreamItems representing a single sector, i.e. there
         can't be any Break objects in the stream.
-    :param idx: The index of the from_ Dstr
     :return: A Sector object
     :raises SectorFormatException:
     """
-    if idx == 1 or idx + 2 >= len(s):
-        raise SectorFormatException
-    id, off, from_, to, on = s[0], s[idx - 1], s[idx], s[idx + 1], s[idx + 2]
-    if (isinstance(id, DStr)
-            and isinstance(off, dt.datetime)
-            and isinstance(from_, DStr)
-            and isinstance(to, DStr)
-            and isinstance(on, dt.datetime)):
-        flags = SectorFlags.NONE
-        if from_.text[0] == "*":
-            from_ = DStr(from_.date, from_.text[1:])
-            flags |= SectorFlags.POSITIONING
-        if id.text == "TAXI":
-            flags |= SectorFlags.GROUND_DUTY
-        return Sector(
-            id.text, from_.text, to.text,
-            off, on,
-            None, None, flags,
-            f"{id.date:%Y%m%d}{id.text}~")
-    else:
-        raise SectorFormatException
-
-
-def _quasi_sector(s):
-    if False in [isinstance(X, dt.datetime) for X in s[1:]]:
-        raise SectorFormatException
-    name = s[0].text
     if len(s) < 3:
         raise SectorFormatException
-    if len(s) == 5:
-        start, finish = s[2], s[3]
+    id_ = s[0]
+    if not isinstance(id_, DStr):
+        raise SectorFormatException
+    idx = 1  # find index of first DStr, which should be origin airport
+    while idx < len(s) and isinstance(s[idx], dt.datetime):
+        idx += 1
+    if idx < len(s):  # normal sector
+        if len(s) < idx + 3:
+            raise SectorFormatException
+        off, from_, to, on = s[idx - 1], s[idx], s[idx + 1], s[idx + 2]
+        flags = SectorFlags.NONE
+        crewlist_id = f"{id_.date:%Y%m%d}{id_.text}~"
+        if isinstance(from_, DStr) and from_.text[0] == "*":
+            from_ = DStr(from_.date, from_.text[1:])
+            flags |= SectorFlags.POSITIONING
+        if id_.text == "TAXI":
+            flags |= SectorFlags.GROUND_DUTY
+    else:  # quasi sector
+        if len(s) == 5:
+            off, on = s[2], s[3]
+        else:
+            off, on = s[1], s[-1]
+        from_, to, crewlist_id = None, None, None
+        flags = SectorFlags.QUASI | SectorFlags.GROUND_DUTY
+    if (isinstance(off, dt.datetime)
+            and isinstance(on, dt.datetime)
+            and isinstance(from_, (DStr, type(None)))
+            and isinstance(to, (DStr, type(None)))):
+        return Sector(id_.text,
+                      from_.text if from_ else None,
+                      to.text if to else None,
+                      off, on, None, None, flags, crewlist_id)
     else:
-        start, finish = s[1], s[-1]
-    return Sector(
-        name, None, None, start, finish,
-        None, None,
-        SectorFlags.QUASI | SectorFlags.GROUND_DUTY,
-        None)
+        raise SectorFormatException
 
 
 def _crew_strings(roster: str) -> list[str]:
@@ -640,7 +616,7 @@ def _update_from_flightinfo(dutylist: list[Duty]) -> list[Duty]:
                 updated_sectors.append(sec._replace(reg=reg, type_=type_))
             else:
                 updated_sectors.append(sec)
-        retval.append(duty._replace(sectors=updated_sectors))
+        retval.append(duty._replace(sectors=tuple(updated_sectors)))
     return retval
 
 
