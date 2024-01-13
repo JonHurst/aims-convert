@@ -5,7 +5,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 
-import aims.roster as dr
+import aims.roster as roster
+import aims.airframe_lookup as afl
 
 from aims.output import csv
 from aims.output import ical
@@ -275,7 +276,7 @@ class MainWindow(ttk.Frame):
                 self.__csv()
             else:
                 self.__ical()
-        except dr.DetailedRosterException as e:
+        except roster.RosterException as e:
             self.txt.delete('1.0', tk.END)
             messagebox.showerror("Error", str(e))
 
@@ -294,7 +295,7 @@ class MainWindow(ttk.Frame):
                 with open(fn) as f:
                     retval = f.read()
             except Exception:
-                raise dr.InputFileException
+                raise roster.InputFileException
         return retval
 
     def __csv(self):
@@ -306,12 +307,15 @@ class MainWindow(ttk.Frame):
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
-        dutylist = dr.duties(html)
+
+        l = roster.lines(html)
+        s = roster.stream(roster.columns(l), roster.extract_date(l))
+        dutylist = afl.update(roster.duties(roster.sectors(s)))
         if not dutylist:
             messagebox.showinfo('Duties', 'No relevant duties found')
             self.txt.delete('1.0', tk.END)
             return
-        crewlist_map = dr.crew(html, dutylist)
+        crewlist_map = roster.crew(l, dutylist)
         fo = True if self.ms.role.get() == 'fo' else False
         txt = csv(dutylist, crewlist_map, fo)
         if self.ms.with_header.get() is False:
@@ -324,7 +328,9 @@ class MainWindow(ttk.Frame):
         html = self.__roster_html()
         if not html:
             return
-        dutylist = dr.duties(html)
+        l = roster.lines(html)
+        s = roster.stream(roster.columns(l), roster.extract_date(l))
+        dutylist = roster.duties(roster.sectors(s))
         if not dutylist:
             self.txt.delete('1.0', tk.END)
             messagebox.showinfo('Duties', 'No relevant duties found')

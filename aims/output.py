@@ -7,9 +7,10 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster import Duty, Sector, SectorFlags, CrewMember
+from aims.roster import Duty, Sector, CrewMember
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
+from aims.airframe_lookup import airframes, sector_id
 
 
 def clean(name: str) -> str:
@@ -67,16 +68,15 @@ def roster(duties: List[Duty]) -> str:
         block = 0
         for sector in duty.sectors:
             if not from_ and sector.from_:
-                from_ = sector.from_
-            if sector.flags & SectorFlags.QUASI:
-                airports.append(sector.name)
-            elif sector.flags & SectorFlags.POSITIONING:
+                from_ = sector.from_.strip("*")
+            if sector.from_ and sector.from_[0] == "*":
                 airports.append("[psn]")
-            else:
-                off, on = sector.off, sector.on
-                block += int((on - off).total_seconds()) // 60
             if sector.to:
                 airports.append(sector.to)
+                off, on = sector.off, sector.on
+                block += int((on - off).total_seconds()) // 60
+            else:
+                airports.append(sector.name)
         if from_:
             airports = [from_] + airports
         duration_str = f"{duration // 60}:{duration % 60:02d}"
@@ -91,33 +91,31 @@ def freeform(
         crews: Dict[str, tuple[CrewMember, ...]]
 ) -> str:
     output = []
+    regntype = airframes(duties)
     for duty in duties:
         if not duty.sectors:
             continue
         output.append(f"{duty.start:%Y-%m-%d}")
         comment = ""
-        if (len(duty.sectors) == 1
-                and (duty.sectors[0].flags & SectorFlags.QUASI)):
+        if (len(duty.sectors) == 1 and not duty.sectors[0].from_):
             comment = f" #{duty.sectors[0].name}"
         output.append(f"{duty.start:%H%M}/{duty.finish:%H%M}{comment}")
         last_crew, last_reg = None, None
         for sector in duty.sectors:
-            if not sector.off or sector.flags != SectorFlags.NONE:
+            if not sector.from_:
                 continue
-
+            crewlist_id = f"{sector.off:%Y%m%d}{sector.name}~"
             # crewlist
-            if sector.crewlist_id and sector.crewlist_id in crews:
+            if crewlist_id and crewlist_id in crews:
                 crew = [f"{X[1]}:{clean(X[0])}"
-                        for X in crews[sector.crewlist_id]]
+                        for X in crews[crewlist_id]]
                 if crew != last_crew:
                     output.append(f"{{ {', '.join(crew)} }}")
                     last_crew = crew
-
-            # registration and type
-            if sector.reg and sector.type_ and sector.reg != last_reg:
-                output.append(f"{sector.reg}:{sector.type_}")
-                last_reg = sector.reg
-
+            reg, type_ = regntype.get(sector_id(sector), (None, None))
+            if reg and type_ and reg != last_reg:
+                output.append(f"{reg}:{type_}")
+                last_reg = reg
             # sector
             night_frac = _night(sector)
             night_str = f" { night_frac:0.3}" if night_frac else ""
@@ -133,12 +131,12 @@ def csv(
         crews: Dict[str, tuple[CrewMember, ...]],
         fo: bool
 ) -> str:
+    regntype = airframes(duties)
     output = io.StringIO(newline='')
     fieldnames = ['Off Blocks', 'On Blocks', 'Origin', 'Destination',
                   'Registration', 'Type', 'Captain', 'Role', 'Crew', 'Night']
     fieldname_map = (('Off Blocks', 'off'), ('On Blocks', 'on'),
-                     ('Origin', 'from_'), ('Destination', 'to'),
-                     ('Registration', 'reg'), ('Type', 'type_'))
+                     ('Origin', 'from_'), ('Destination', 'to'))
     writer = libcsv.DictWriter(
         output,
         fieldnames=fieldnames,
@@ -149,21 +147,21 @@ def csv(
         if not duty.sectors:
             continue
         for sector in duty.sectors:
-            if (sector.flags != SectorFlags.NONE
-                    or not (sector.off and sector.on)):
+            crewlist_id = f"{sector.off:%Y%m%d}{sector.name}~"
+            if not sector.from_:
                 continue
             sec_dict = sector._asdict()
             for fn, sfn in fieldname_map:
                 sec_dict[fn] = sec_dict[sfn]
             sec_dict['Role'] = 'p1s' if fo else 'p1'
-            crewlist = crews.get(sector.crewlist_id, tuple())
+            crewlist = crews.get(crewlist_id, tuple())
             sec_dict['Captain'] = 'Self'
+            reg, type_ = regntype.get(sector_id(sector), ("", ""))
+            sec_dict['Registration'] = reg
+            sec_dict['Type'] = type_
             if fo and crewlist and crewlist[0].role == 'CP':
                 sec_dict['Captain'] = crewlist[0].name
             crewstr = "; ".join([f"{X[1]}:{clean(X[0])}" for X in crewlist])
-            if (not sector.type_ and len(sector.crewlist_id) > 3
-                    and sector.crewlist_id[-3:] in ("319", "320", "321")):
-                sec_dict['Type'] = f"{sector.crewlist_id[-3:]}"
             sec_dict['Crew'] = crewstr
             sec_dict['Night'] = _night(sector)
             writer.writerow(sec_dict)
@@ -194,7 +192,7 @@ END:VEVENT"""
 ical_datetime = "{:%Y%m%dT%H%M%SZ}"
 
 
-def _build_dict(duty: Duty) -> Dict[str, str]:
+def _build_dict(duty: Duty, regntype) -> Dict[str, str]:
     event = {}
     event["start"] = ical_datetime.format(duty.start)
     event["end"] = ical_datetime.format(duty.finish)
@@ -205,20 +203,22 @@ def _build_dict(duty: Duty) -> Dict[str, str]:
         for sector in duty.sectors:
             if not from_ and sector.from_:
                 from_ = sector.from_
-            if sector.flags & SectorFlags.QUASI:
+            if not sector.to:
                 airports.append(sector.name)
-            elif sector.flags & SectorFlags.POSITIONING:
+            elif sector.from_ and sector.from_[0] == "*":
                 airports.append("[psn]")
             if sector.to:
                 airports.append(sector.to)
             off, on = sector.off, sector.on
             from_to = ""
+            reg, type_ = regntype.get(sector_id(sector), ("", ""))
+            type_ = ":" + type_
             if sector.from_ and sector.to:
                 from_to = f"{sector.from_}/{sector.to} "
             sector_strings.append(
                 f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
                 f"{from_to}"
-                f"{sector.reg if sector.reg else ''}")
+                f"{reg}{type_}")
     if from_:
         airports = [from_] + airports
     event["sectors"] = "DESCRIPTION:{}\r\n".format(
@@ -232,7 +232,8 @@ def _build_dict(duty: Duty) -> Dict[str, str]:
 
 def ical(duties: List[Duty]) -> str:
     events = []
+    regntype = airframes(duties)
     for duty in duties:
-        d = _build_dict(duty)
+        d = _build_dict(duty, regntype)
         events.append(vevent.format(**d))
     return vcalendar.format("\r\n".join(events))
