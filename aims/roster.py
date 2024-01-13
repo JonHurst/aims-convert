@@ -407,7 +407,7 @@ def duty_stream(bstream):
                          if isinstance(X, Break)]
     assert bstream[0] == Break.COLUMN and bstream[-1] == Break.COLUMN
     if len(bstream) <= 2:
-        return bsteam
+        return bstream
     dstream = bstream[:]
     dstream = _remove_single_dstrs(dstream)
     dstream = _fix_edges(dstream)
