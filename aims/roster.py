@@ -163,53 +163,50 @@ def _process_column(
     return tuple(cast(DataBlock, tuple(X)) for X in groups)
 
 
+def _search_standard_block(
+        block: DataBlock
+) -> tuple[str, dt.datetime, str, str, dt.datetime]:
+    id_, from_, to = "", "", ""
+    off, on = dt.datetime(1970, 1, 1), dt.datetime(1970, 1, 1)
+    for c in range(len(block) - 1):
+        if not from_:
+            if (isinstance(block[c], dt.datetime)
+                    and isinstance(block[c + 1], str)):
+                # found the marker for off and from
+                off = cast(dt.datetime, block[c])
+                from_ = cast(str, block[c + 1])
+            elif isinstance(block[c], str):
+                id_ = cast(str, block[c])
+        elif not to:
+            if (isinstance(block[c], str)
+                    and isinstance(block[c + 1], dt.datetime)):
+                # found the marker for to and on
+                to = cast(str, block[c])
+                on = cast(dt.datetime, block[c + 1])
+    return (id_, off, from_, to, on)
+
+
 def _extract_standard_sector(
         block: DataBlock, extra_block: DataBlock
 ) -> tuple[Optional[Sector], int]:
-    all_times = [cast(dt.datetime, X)
-                 for X in block if isinstance(X, dt.datetime)]
-    id_, off, from_, to, on, used = None, None, None, None, None, 0
-    try:
-        idx = 2
-        # find from
-        while not (isinstance(block[idx], str)
-                   and isinstance(block[idx - 1], dt.datetime)):
-            idx += 1
-        off = cast(dt.datetime, block[idx - 1])
-        from_ = cast(str, block[idx])
-        # find id
-        backtrack = idx - 2
-        while not (isinstance(block[backtrack], str)):
-            backtrack -= 1
-        id_ = cast(str, block[backtrack])
-        # find to
-        idx += 1
-        while not (isinstance(block[idx], str)
-                   and isinstance(block[idx + 1], dt.datetime)):
-            idx += 1
-        to = cast(str, block[idx])
-        on = cast(dt.datetime, block[idx + 1])
-        used = 1
-    except IndexError:
-        if not id_:
-            return (None, 0)
-        # If we get here, we got as far as finding an id but ran out of block
-        # before finding a to and on. Try to extract them from the extra block.
-        all_times.extend([cast(dt.datetime, X)
-                          for X in extra_block if isinstance(X, dt.datetime)])
-
-        try:
-            idx = 0
-            while not (isinstance(extra_block[idx], str)
-                       and isinstance(extra_block[idx + 1], dt.datetime)):
-                idx += 1
-            to = cast(str, extra_block[idx])
-            on = cast(dt.datetime, extra_block[idx + 1])
-            used = 2
-        except IndexError:
-            return (None, 0)
-    # fix for dragover case -- reduce sectors over 24 hours by 24 hours
-    if on - cast(dt.datetime, off) > dt.timedelta(1):
+    all_times = [X for X in block if isinstance(X, dt.datetime)]
+    used = 1
+    id_, off, from_, to, on = _search_standard_block(block)
+    if from_ and not to:  # if "to" is  not found, try in the extra block
+        used = 2
+        all_times.extend([X for X in extra_block
+                          if isinstance(X, dt.datetime)])
+        for c in range(len(extra_block) - 1):
+            if (isinstance(extra_block[c], str)
+                    and isinstance(extra_block[c + 1], dt.datetime)):
+                # found the marker for to and on
+                to = cast(str, extra_block[c])
+                on = cast(dt.datetime, extra_block[c + 1])
+                break
+    if not to:
+        return (None, 0)
+    # fix for dragover case
+    if on - off > dt.timedelta(1):
         idx = all_times.index(on)
         on -= dt.timedelta(1)
         all_times[idx] = on
@@ -234,7 +231,8 @@ def _extract_quasi_sector(tblock: DataBlock) -> tuple[Sector, int]:
 
 
 def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
-    data: list[DataBlock] = []
+    fake_start_date = dt.datetime.combine(columns[0][0], dt.time())
+    data: list[DataBlock] = [("???", fake_start_date)]
     for col in columns:
         for block in col[1]:
             if len(block) == 1 and isinstance(block[0], str):
@@ -250,6 +248,8 @@ def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
         data.append((fake_end_date, fake_end_date))
     else:
         data.append(("???", fake_end_date, fake_end_date))
+    if data[0] == ("???", fake_start_date):
+        del data[0]
     return data
 
 
