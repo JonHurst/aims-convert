@@ -6,7 +6,6 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 import aims.roster as roster
-import aims.airframe_lookup as afl
 
 from aims.output import csv
 from aims.output import ical
@@ -309,8 +308,8 @@ class MainWindow(ttk.Frame):
         self.txt.update()
 
         l = roster.lines(html)
-        s = roster.stream(roster.columns(l), roster.extract_date(l))
-        dutylist = afl.update(roster.duties(roster.sectors(s)))
+        sectors = roster.sectors(roster.columns(l))
+        dutylist = roster.duties(sectors)
         if not dutylist:
             messagebox.showinfo('Duties', 'No relevant duties found')
             self.txt.delete('1.0', tk.END)
@@ -329,8 +328,8 @@ class MainWindow(ttk.Frame):
         if not html:
             return
         l = roster.lines(html)
-        s = roster.stream(roster.columns(l), roster.extract_date(l))
-        dutylist = roster.duties(roster.sectors(s))
+        sectors = roster.sectors(roster.columns(l))
+        dutylist = roster.duties(sectors)
         if not dutylist:
             self.txt.delete('1.0', tk.END)
             messagebox.showinfo('Duties', 'No relevant duties found')
