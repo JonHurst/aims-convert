@@ -233,8 +233,7 @@ def _extract_quasi_sector(tblock: DataBlock) -> tuple[Sector, int]:
         raise SectorFormatException
 
 
-def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
-    """Convert a tuple of DataBlocks into a tuple of Sectors"""
+def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
     data: list[DataBlock] = []
     for col in columns:
         for block in col[1]:
@@ -244,9 +243,19 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
                 data[-1] = tuple(list(data[-1]) + list(block))
             else:
                 data.append(block)
+    # set up end guards
     fake_end_date = (dt.datetime.combine(columns[-1][0], dt.time())
                      + dt.timedelta(1))
-    data.append(("???", fake_end_date, fake_end_date))
+    if isinstance(data[-1][-1], dt.datetime):
+        data.append((fake_end_date, fake_end_date))
+    else:
+        data.append(("???", fake_end_date, fake_end_date))
+    return data
+
+
+def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
+    """Convert a tuple of DataBlocks into a tuple of Sectors"""
+    data = _columns_to_datastream(columns)
     # extract standard sectors
     retval: list[Sector] = []
     processed = [False] * len(data)
@@ -266,9 +275,6 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
         if used:
             processed[c] = True
             retval.append(cast(Sector, sector))
-    # do special treatment for final block
-
-    # TODO
     return tuple(retval)
 
 
