@@ -231,8 +231,8 @@ def _extract_quasi_sector(tblock: DataBlock) -> tuple[Sector, int]:
 
 
 def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
-    fake_start_date = dt.datetime.combine(columns[0][0], dt.time())
-    data: list[DataBlock] = [("???", fake_start_date)]
+    fake_start_time = dt.datetime.combine(columns[0][0], dt.time())
+    data: list[DataBlock] = [("???", fake_start_time)]
     for col in columns:
         for block in col[1]:
             if len(block) == 1 and isinstance(block[0], str):
@@ -242,13 +242,12 @@ def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
             else:
                 data.append(block)
     # set up end guard
-    fake_end_date = (dt.datetime.combine(columns[-1][0], dt.time())
+    fake_end_time = (dt.datetime.combine(columns[-1][0], dt.time())
                      + dt.timedelta(1))
-    if isinstance(data[-1][-1], dt.datetime):
-        data.append((fake_end_date, fake_end_date))
-    else:
-        data.append(("???", fake_end_date, fake_end_date))
-    if data[0] == ("???", fake_start_date):
+    if len(data[-1]) == 2 and isinstance(data[-1][1], dt.datetime):
+        data[-1] = tuple(list(data[-1]) + [fake_end_time])
+    data.append(("???", fake_end_time, fake_end_time))
+    if data[0] == ("???", fake_start_time):
         del data[0]
     return data
 

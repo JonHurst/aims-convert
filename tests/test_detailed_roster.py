@@ -92,6 +92,18 @@ class Test_sectors(unittest.TestCase):
                     DT(2021, 5, 19, 0, 0), DT(2021, 5, 19, 0, 0)))
         )
         self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
+        data = (
+            (D(2021, 5, 17), (((DT(2021, 5, 17, 2),)),)),
+            (D(2021, 5, 18), ((('SBY', DT(2021, 5, 18, 21, 25)),))))
+        expected_result = (
+            Sector('???', None, None, DT(2021, 5, 17, 0, 0),
+                   DT(2021, 5, 17, 2, 0),
+                   (DT(2021, 5, 17, 0, 0), DT(2021, 5, 17, 2, 0))),
+            Sector('SBY', None, None, DT(2021, 5, 18, 21, 25),
+                   DT(2021, 5, 19, 0, 0),
+                   (DT(2021, 5, 18, 21, 25), DT(2021, 5, 19, 0, 0))))
+        self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
+
 
 
 
