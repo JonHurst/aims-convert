@@ -76,6 +76,26 @@ class Test_sectors(unittest.TestCase):
         self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
 
 
+    def test_edges(self):
+        data = (
+            (D(2021, 5, 17), (((DT(2021, 5, 17, 2),)),)),
+            (D(2021, 5, 18), (('6046', DT(2021, 5, 18, 21, 25),
+                               DT(2021, 5, 18, 21, 35), "PMI",
+                               "(A320)"),)))
+        expected_result = (
+            Sector('???', None, None, DT(2021, 5, 17, 0, 0),
+                   DT(2021, 5, 17, 2, 0),
+                   (DT(2021, 5, 17, 0, 0), DT(2021, 5, 17, 2, 0))),
+            Sector('6046', 'PMI', '???', DT(2021, 5, 18, 21, 35),
+                   DT(2021, 5, 19, 0, 0),
+                   (DT(2021, 5, 18, 21, 25), DT(2021, 5, 18, 21, 35),
+                    DT(2021, 5, 19, 0, 0), DT(2021, 5, 19, 0, 0)))
+        )
+        self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
+
+
+
+
 
 class Test_duties(unittest.TestCase):
 

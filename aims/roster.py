@@ -241,7 +241,7 @@ def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
                 data[-1] = tuple(list(data[-1]) + list(block))
             else:
                 data.append(block)
-    # set up end guards
+    # set up end guard
     fake_end_date = (dt.datetime.combine(columns[-1][0], dt.time())
                      + dt.timedelta(1))
     if isinstance(data[-1][-1], dt.datetime):
