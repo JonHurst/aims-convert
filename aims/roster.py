@@ -82,14 +82,14 @@ class RosterParser(HTMLParser):
 
 def lines(roster: str) -> tuple[Line, ...]:
     """
-    Turn an AIMS roster into a list of Line objects.
+    Turn an AIMS roster into a tuple of Line objects.
 
     An AIMS roster is fundamentally a very complex HTML table. Each Line object
     represents a row of that table, and each string contained in the Line
     object represents the contents of a cell.
 
     :param roster: A string containing the HTML of an AIMS detailed roster.
-    :return: A list of Line objects representing the text of the roster.
+    :return: A tuple of Line objects representing the text of the roster.
     """
     parser = RosterParser()
     parser.feed(roster)
