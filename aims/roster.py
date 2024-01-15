@@ -172,9 +172,8 @@ def _process_column(
                 converted.append(bug_fix)
             else:
                 converted.append(entry)
-    groups = [list(X[1]) for X in it.islice(it.groupby(converted, bool), 0,
-                                            None, 2)]
-    return tuple(cast(DataBlock, tuple(X)) for X in groups)
+    groups = filter(lambda x: x[0], it.groupby(converted, bool))
+    return tuple(cast(DataBlock, tuple(X[1])) for X in groups)
 
 
 def _search_standard_block(
