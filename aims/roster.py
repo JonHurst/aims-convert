@@ -182,18 +182,20 @@ def _search_standard_block(
 ) -> tuple[str, dt.datetime, str, str, dt.datetime]:
     id_, from_, to = "", "", ""
     off, on = dt.datetime(1970, 1, 1), dt.datetime(1970, 1, 1)
-    for c in range(len(block) - 1):
-        if not from_:
-            if (isinstance(block[c], dt.datetime)
-                    and isinstance(block[c + 1], str)):
-                # found the marker for off and from
-                off = cast(dt.datetime, block[c])
-                from_ = cast(str, block[c + 1])
-            elif isinstance(block[c], str):
-                id_ = cast(str, block[c])
-        elif not to:
-            if (isinstance(block[c], str)
-                    and isinstance(block[c + 1], dt.datetime)):
+    str_mask = [isinstance(X, str) for X in block]
+    it = iter(range(len(block) - 1))
+    for c in it:
+        if str_mask[c]:
+            id_ = cast(str, block[c])
+        elif str_mask[c + 1]:
+            # found the marker for off and from
+            off = cast(dt.datetime, block[c])
+            from_ = cast(str, block[c + 1])
+            next(it)  # skip from entry
+            break
+    if from_:
+        for c in it:  # continue iterating from the entry after from
+            if str_mask[c] and not str_mask[c + 1]:
                 # found the marker for to and on
                 to = cast(str, block[c])
                 on = cast(dt.datetime, block[c + 1])
