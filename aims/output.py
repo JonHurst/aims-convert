@@ -214,7 +214,7 @@ def _build_dict(duty: Duty, regntype) -> Dict[str, str]:
             off, on = sector.off, sector.on
             from_to = ""
             reg, type_ = regntype.get(sector_id(sector), ("", ""))
-            type_ = ":" + type_
+            type_ = ":" + type_ if type_ else ""
             if sector.from_ and sector.to:
                 from_to = f"{sector.from_}/{sector.to} "
             sector_strings.append(
