@@ -263,14 +263,38 @@ def _extract_standard_sector(
 
 
 def _extract_quasi_sector(block: DataBlock) -> Optional[Sector]:
-    assert isinstance(block[0], str)
-    if (any(isinstance(X, str) for X in block[1:])
-            or len(block) < 3):
+    """Try to extract a quasi sector (i.e a standby, LOE or suchlike) from a
+    DataBlock.
+
+    By the time this is called, any quasi sectors straddling midnight should
+    have been merged into a single DataBlock (_columns_to_datastream does this
+    early in proceedings).
+
+    A block relating to a quasi sector has a string title followed by 2 to 4
+    inclusive datetimes. Two is easy -- it's a standby on it's own, so we treat
+    the two times as off and on chocks. Four is something like an LOE. We treat
+    the inner pair as chock times and the outer pair as duty times. Three
+    occurs with standby and training duties that form part of a series of
+    sectors. Generally, the standby happens before other stuff, so we want the
+    last two times for block times and the first gets treated as a duty report
+    time.
+
+    A corner case occurs when a standard sector is split over midnight at the
+    start of the roster, so that only the end of the sector is shown. This is
+    indistinguishable from a quasi sector, so it is treated as such. It could
+    also have a dragover problem, so that the first datetime is actually on the
+    previous day, so we fix this if it occurs as a best effort.
+
+    :param block: The block to extract the quasi sector from.
+    :return: None if unsuccessful. A Sector object if successful.
+    """
+    if (5 < len(block) < 3 or isinstance(block[0], dt.datetime)
+            or any(isinstance(X, str) for X in block[1:])):
         return None
     if len(block) == 5:
         off, on = cast(dt.datetime, block[2]), cast(dt.datetime, block[3])
     else:
-        off, on = cast(dt.datetime, block[1]), cast(dt.datetime, block[-1])
+        off, on = cast(dt.datetime, block[-2]), cast(dt.datetime, block[-1])
     if off > on:
         off -= dt.timedelta(1)  # for dragover in first column
     return Sector(cast(str, block[0]), None, None, off, on, block)
