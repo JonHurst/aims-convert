@@ -32,6 +32,10 @@ class CrewMember(NamedTuple):
     role: str
 
 
+CrewList = tuple[CrewMember, ...]
+CrewDict = dict[tuple[dt.date, Optional[str]], CrewList]
+
+
 class RosterException(Exception):
 
     def __str__(self):
@@ -271,7 +275,7 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
-def _crew_strings(lines: list[Line]) -> list[str]:
+def _crew_strings(lines: tuple[Line, ...]) -> tuple[str, ...]:
     # find header of crew table
     for c, l in enumerate(lines):
         if not l:
@@ -279,50 +283,25 @@ def _crew_strings(lines: list[Line]) -> list[str]:
         if re.match(r"DATE\s*RTES\s*NAMES", l[0]):
             break
     else:
-        return []  # crew table not found
+        return tuple()  # crew table not found
     if len(lines) <= c + 1 or not lines[c + 1][0]:
-        return []  # protects against malformed file
-    return lines[c + 1][0].replace(" ", " ").splitlines()
-
-
-def _all_flights_mapping(duties: list[Duty]) -> dict[str, list[str]]:
-    """Returns a mapping of the form {allkey: [crewlist_id1, ...], } where
-    all_key has the form '%Y%m%dAll~' """
-    sector_map: dict[str, list[str]] = {}
-    for duty in duties:
-        if not duty.sectors:
-            continue
-        key_all = f"{duty.start:%Y%m%d}All~"
-        sector_map[key_all] = []
-        for sector in duty.sectors:
-            sector_map[key_all].append(f"{sector.off:%Y%m%d}{sector.name}~")
-    return sector_map
-
-
-def _fix_two_line_crews(crew_strings):
-    """Return a list of strings where two line crew strings are joined"""
-    # Very occasionally there are so many crew that a crew member drops
-    # onto a second line. Normal lines start with dates, so if there is no
-    # digit at the start of the string, concatenate it to the previous one.
-    out = ["", ]
-    for s in crew_strings:
+        return tuple()  # protects against malformed file
+    strings = lines[c + 1][0].replace(" ", " ").splitlines()
+    out = ["", ]  # deal with strings going on to second line
+    for s in strings:
         if not s:
             continue
         if s[0].isdigit():
             out.append(s)
         else:
             out[-1] += s
-    return out[1:]
+    return tuple(out[1:])
 
 
-def crew(
-        lines: list[Line],
-        duties: list[Duty] = []
-) -> dict[str, tuple[CrewMember, ...]]:
+def crew_dict(lines: tuple[Line, ...]) -> CrewDict:
     """Extract crew lists from an AIMS detailed roster."""
-    sector_map = _all_flights_mapping(duties)
-    retval = {}
-    for s in _fix_two_line_crews(_crew_strings(lines)):
+    retval: CrewDict = {}
+    for s in _crew_strings(lines):
         entries = re.split(r"\s*(\w{2})>\w* ", s)
         if len(entries) < 3:
             raise CrewFormatException
@@ -331,18 +310,15 @@ def crew(
             date = dt.datetime.strptime(datestr, "%d/%m/%Y").date()
         except ValueError:
             raise CrewFormatException
-        crew = []
+        crew: list[CrewMember] = []
         for name_string, role in zip(entries[2::2], entries[1::2]):
             name_string = " ".join([X.strip() for X in name_string.split()])
             crew.append(CrewMember(name_string, role))
         if route == "All":
-            key = f"{date:%Y%m%d}All~"
-            for id_ in sector_map.get(key, []):
-                retval[id_] = tuple(crew)
+            retval[(date, None)] = tuple(crew)
         else:
             for flight in route.split(","):
-                key = f"{date:%Y%m%d}{flight}~"
-                retval[key] = tuple(crew)
+                retval[(date, flight)] = tuple(crew)
     return retval
 
 

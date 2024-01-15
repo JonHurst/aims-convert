@@ -314,7 +314,7 @@ class MainWindow(ttk.Frame):
             messagebox.showinfo('Duties', 'No relevant duties found')
             self.txt.delete('1.0', tk.END)
             return
-        crewlist_map = roster.crew(l, dutylist)
+        crewlist_map = roster.crew_dict(l)
         fo = True if self.ms.role.get() == 'fo' else False
         txt = csv(dutylist, crewlist_map, fo)
         if self.ms.with_header.get() is False:

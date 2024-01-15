@@ -7,7 +7,7 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster import Duty, Sector, CrewMember
+from aims.roster import Duty, Sector, CrewDict
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 from aims.airframe_lookup import airframes, sector_id
@@ -88,7 +88,7 @@ def roster(duties: List[Duty]) -> str:
 
 def freeform(
         duties: List[Duty],
-        crews: Dict[str, tuple[CrewMember, ...]]
+        crewdict: CrewDict
 ) -> str:
     output = []
     regntype = airframes(duties)
@@ -101,17 +101,17 @@ def freeform(
             comment = f" #{duty.sectors[0].name}"
         output.append(f"{duty.start:%H%M}/{duty.finish:%H%M}{comment}")
         last_crew, last_reg = None, None
+        duty_crew = list(crewdict.get((duty.start.date(), None), []))
         for sector in duty.sectors:
-            if not sector.from_:
+            if not sector.from_ or sector.from_[0] == "*" :
                 continue
-            crewlist_id = f"{sector.off:%Y%m%d}{sector.name}~"
-            # crewlist
-            if crewlist_id and crewlist_id in crews:
-                crew = [f"{X[1]}:{clean(X[0])}"
-                        for X in crews[crewlist_id]]
-                if crew != last_crew:
-                    output.append(f"{{ {', '.join(crew)} }}")
-                    last_crew = crew
+            sector_crew = list(crewdict.get(
+                (sector.off.date(), sector.name), []))
+            crew = [f"{X.role}:{clean(X.name)}"
+                    for X in duty_crew + sector_crew]
+            if crew != last_crew:
+                output.append(f"{{ {', '.join(crew)} }}")
+                last_crew = crew
             reg, type_ = regntype.get(sector_id(sector), (None, None))
             if reg and type_ and reg != last_reg:
                 output.append(f"{reg}:{type_}")
@@ -128,7 +128,7 @@ def freeform(
 
 def csv(
         duties: List[Duty],
-        crews: Dict[str, tuple[CrewMember, ...]],
+        crewdict: CrewDict,
         fo: bool
 ) -> str:
     regntype = airframes(duties)
@@ -146,15 +146,17 @@ def csv(
     for duty in duties:
         if not duty.sectors:
             continue
+        duty_crew = list(crewdict.get((duty.start.date(), None), []))
         for sector in duty.sectors:
-            crewlist_id = f"{sector.off:%Y%m%d}{sector.name}~"
             if not sector.from_:
                 continue
+            sector_crew = list(crewdict.get(
+                (sector.off.date(), sector.name), []))
             sec_dict = sector._asdict()
             for fn, sfn in fieldname_map:
                 sec_dict[fn] = sec_dict[sfn]
             sec_dict['Role'] = 'p1s' if fo else 'p1'
-            crewlist = crews.get(crewlist_id, tuple())
+            crewlist = duty_crew + sector_crew
             sec_dict['Captain'] = 'Self'
             reg, type_ = regntype.get(sector_id(sector), ("", ""))
             sec_dict['Registration'] = reg

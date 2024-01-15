@@ -25,11 +25,11 @@ def main() -> int:
     elif args.format == "freeform":
         print(output.freeform(
             dutylist,
-            roster.crew(l, dutylist)))
+            roster.crew_dict(l)))
     elif args.format == "csv":
         print(output.csv(
             dutylist,
-            roster.crew(l, dutylist),
+            roster.crew_dict(l),
             args.fo))
     elif args.format == "ical":
         print(output.ical(dutylist))
