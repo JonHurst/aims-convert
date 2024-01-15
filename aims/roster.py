@@ -101,13 +101,23 @@ def lines(roster: str) -> tuple[Line, ...]:
 
 
 def columns(lines: tuple[Line, ...]) -> tuple[Column, ...]:
-    """
-    Extract the main table in the form of a list of Column objects.
+    """Extract the main table in the form of a tuple of Column objects.
+
+    When an AIMS roster is viewed in a browser, each column of the main table
+    represents a day. Groups of cells are separated vertically by blank cells,
+    with. Each group represents either a full day event, a sector, or, if a
+    sector straddles midnight, part of a sector. Standby and positioning duties
+    are considered to just be special forms of a sector.
+
+    The columns function converts each separate group into a DataBlock. Time
+    strings to datetime objects in the process. All the DataBlocks are then
+    formed into a tuple, and this is paired with the date of the column to form
+    a Column object. The Column objects structure is thus a very natural
+    representation of the column as viewed ia a browser.
 
     :param lines: An AIMS roster in the form output from the lines function.
-    :return: A list of Column objects, one Column for each day. A Column object
-        is a tuple consisting of a datetime in the first field and a tuple of
-        DataBlock objects in the second field.
+    :return: A tuple of Column objects, one Column for each day covered by the
+        roster.
     """
     mo = re.search(r"Period: (\d{2}/\d{2}/\d{4})", lines[1][0])
     if not mo:
