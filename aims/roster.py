@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import sys
 import re
 import datetime as dt
 from html.parser import HTMLParser
@@ -291,6 +292,9 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
         if sector:
             processed[c] = True
             retval.append(sector)
+    if not all(processed[:-1]):
+        print("Warning: Some sectors could not be processed",
+              file=sys.stderr)
     return tuple(retval)
 
 
