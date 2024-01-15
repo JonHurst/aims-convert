@@ -156,9 +156,7 @@ def _process_column(
 
     :param col: The Column to process.
     :param date: The date to apply to entries in the column
-
     :return: A list of StreamItems. Leading and trailing Breaks are removed.
-
     """
     assert all(isinstance(X, str) for X in col)
     converted: list[Datum] = []
