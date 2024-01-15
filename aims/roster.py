@@ -227,8 +227,9 @@ def _extract_standard_sector(
 
 
 def _extract_quasi_sector(block: DataBlock) -> Optional[Sector]:
-    assert len(block) > 1 and isinstance(block[0], str)
-    if (any(isinstance(X, str) for X in block[1:])):
+    assert isinstance(block[0], str)
+    if (any(isinstance(X, str) for X in block[1:])
+            or len(block) < 3):
         return None
     if len(block) == 5:
         off, on = cast(dt.datetime, block[2]), cast(dt.datetime, block[3])
