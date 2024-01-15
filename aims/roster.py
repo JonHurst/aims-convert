@@ -11,6 +11,7 @@ Datum = Union[str, dt.datetime]
 DataBlock = tuple[Datum, ...]
 Column = tuple[dt.date, tuple[DataBlock, ...]]
 Line = tuple[str, ...]
+DayEvent = tuple[dt.date, str]
 
 
 class Sector(NamedTuple):
@@ -173,6 +174,38 @@ def _process_column(
                 converted.append(entry)
     groups = filter(lambda x: x[0], it.groupby(converted, bool))
     return tuple(cast(DataBlock, tuple(X[1])) for X in groups)
+
+
+def all_day_events(columns: tuple[Column, ...]) -> tuple[DayEvent, ...]:
+    """Extract all day events from a tuple of Columns
+
+    Simple all day events are shown on the roster as a single string at the top
+    of the column. An all day event may also, however, occur after a duty, in
+    which case it can be an isolated string at any point in the column.
+    Unfortunately, indicators also take this form on the roster; we assume one
+    and two character strings are indicators as a best effort.
+
+    Things like SNCR are presented on the roster identically to things like
+    days off, so we treat these as also being all day events.
+
+    The possibility exists, although I have never seen it on a roster, that two
+    all day events will be presented as two strings withouth a gap between.
+    Since this shouldn't happen for any blocks representing sectors or quasi
+    sectors, if it occurs each string is considered a separate all day event.
+
+    :param columns: A tuple of Column objects to process
+    :return: A tuple of DayEvent objects, a DayEvent being a tuple of the form
+        (date, event_string)
+    """
+    retval: list[DayEvent] = []
+    for col in columns:
+        all_day_events_ = it.chain.from_iterable(filter(
+            lambda block: all(isinstance(X, str) for X in block),
+            col[1]))
+        for event in all_day_events_:
+            if len(cast(str, event)) > 2:
+                retval.append((col[0], cast(str, event)))
+    return tuple(retval)
 
 
 def _search_standard_block(

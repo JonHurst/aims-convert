@@ -7,7 +7,7 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster import Duty, Sector, CrewDict
+from aims.roster import Duty, Sector, CrewDict, DayEvent
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 from aims.airframe_lookup import airframes, sector_id
@@ -103,7 +103,7 @@ def freeform(
         last_crew, last_reg = None, None
         duty_crew = list(crewdict.get((duty.start.date(), None), []))
         for sector in duty.sectors:
-            if not sector.from_ or sector.from_[0] == "*" :
+            if not sector.from_ or sector.from_[0] == "*":
                 continue
             sector_crew = list(crewdict.get(
                 (sector.off.date(), sector.name), []))
@@ -191,6 +191,16 @@ SUMMARY:{route}\r
 LAST-MODIFIED:{modified}\r
 END:VEVENT"""
 
+advevent = """\
+BEGIN:VEVENT\r
+UID:{uid}\r
+DTSTAMP:{modified}\r
+DTSTART;VALUE=DATE:{day:%Y%m%d}\r
+SUMMARY:{ev}\r
+TRANSP:TRANSPARENT\r
+LAST-MODIFIED:{modified}\r
+END:VEVENT"""
+
 ical_datetime = "{:%Y%m%dT%H%M%SZ}"
 
 
@@ -232,10 +242,20 @@ def _build_dict(duty: Duty, regntype) -> Dict[str, str]:
     return event
 
 
-def ical(duties: List[Duty]) -> str:
+def ical(duties: List[Duty], all_day_events: tuple[DayEvent, ...]) -> str:
     events = []
     regntype = airframes(duties)
     for duty in duties:
         d = _build_dict(duty, regntype)
         events.append(vevent.format(**d))
+    for ade in all_day_events:
+        uid = "{}{}@HURSTS.ORG.UK".format(
+            ade[0].isoformat(), ade[1])
+        modified = ical_datetime.format(dt.datetime.utcnow())
+        events.append(advevent.format(
+            day=ade[0],
+            ev=ade[1],
+            modified=modified,
+            uid=uid
+        ))
     return vcalendar.format("\r\n".join(events))

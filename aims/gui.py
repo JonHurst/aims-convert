@@ -17,7 +17,7 @@ SETTINGS_FILE = os.path.expanduser("~/.aimsgui")
 
 class ModeSelector(ttk.Frame):
 
-    def __init__(self, parent, initial_role, with_header):
+    def __init__(self, parent, initial_role, with_header, with_ade):
         ttk.Frame.__init__(self, parent)
         self.role = tk.StringVar()
         self.role.set(initial_role or 'captain')
@@ -25,6 +25,8 @@ class ModeSelector(ttk.Frame):
         self.output_type.set('csv')
         self.with_header = tk.BooleanVar()
         self.with_header.set(with_header)
+        self.with_ade = tk.BooleanVar()
+        self.with_ade.set(with_ade)
         self.frm_csv_options = None
         self.frm_csv_settings = None
         self.__make_widgets()
@@ -64,14 +66,23 @@ class ModeSelector(ttk.Frame):
         with_header.pack(fill=tk.X)
         self.frm_csv_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
 
+        self.frm_ical_options = ttk.LabelFrame(self, text="Options")
+        with_ade = ttk.Checkbutton(self.frm_ical_options,
+                                   text=" All Day Events",
+                                   variable=self.with_ade,
+                                   command=self.options_changed)
+        with_ade.pack(fill=tk.X)
+
     def output_type_changed(self):
         assert self.output_type.get() in ('csv', 'ical')
         if self.output_type.get() == 'csv':
+            self.frm_ical_options.pack_forget()
             self.frm_csv_settings.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
             self.frm_csv_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
         else:
             self.frm_csv_settings.pack_forget()
             self.frm_csv_options.pack_forget()
+            self.frm_ical_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
         self.event_generate("<<ModeChange>>", when="tail")
 
     def role_changed(self):
@@ -236,7 +247,8 @@ class MainWindow(ttk.Frame):
         sidebar.rowconfigure(1, weight=1)
         self.ms = ModeSelector(sidebar,
                                self.settings.get('Role', None),
-                               self.settings.get('Header', True))
+                               self.settings.get('Header', True),
+                               self.settings.get('ADE', True))
         self.ms.bind("<<ModeChange>>", self.__on_mode_change)
         self.ms.bind("<<OptionChange>>", self.__on_option_change)
         self.ms.grid(row=0, sticky=tk.N)
@@ -256,6 +268,7 @@ class MainWindow(ttk.Frame):
 
     def __on_option_change(self, _):
         self.settings['Header'] = self.ms.with_header.get()
+        self.settings['ADE'] = self.ms.with_ade.get()
         self.txt.delete('1.0', tk.END)
 
     def __on_selection_change(self, _):
@@ -328,14 +341,15 @@ class MainWindow(ttk.Frame):
         if not html:
             return
         l = roster.lines(html)
-        sectors = roster.sectors(roster.columns(l))
-        dutylist = roster.duties(sectors)
+        columns = roster.columns(l)
+        dutylist = roster.duties(roster.sectors(columns))
+        ade = roster.all_day_events(columns) if self.ms.with_ade.get() else ()
         if not dutylist:
             self.txt.delete('1.0', tk.END)
             messagebox.showinfo('Duties', 'No relevant duties found')
             return
         # note: normalise newlines for Text widget - will restore on output
-        txt = ical(dutylist).replace("\r\n", "\n")
+        txt = ical(dutylist, ade).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 

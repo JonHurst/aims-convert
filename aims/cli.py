@@ -13,13 +13,15 @@ def _args():
     parser.add_argument('format',
                         choices=['roster', 'freeform', 'csv', 'ical'])
     parser.add_argument('--fo', action="store_true")
+    parser.add_argument('--ade', action="store_true")
     return parser.parse_args()
 
 
 def main() -> int:
     args = _args()
     l = roster.lines(sys.stdin.read())
-    dutylist = roster.duties(roster.sectors(roster.columns(l)))
+    columns = roster.columns(l)
+    dutylist = roster.duties(roster.sectors(columns))
     if args.format == "roster":
         print(output.roster(dutylist))
     elif args.format == "freeform":
@@ -32,7 +34,8 @@ def main() -> int:
             roster.crew_dict(l),
             args.fo))
     elif args.format == "ical":
-        print(output.ical(dutylist))
+        ade = roster.all_day_events(columns) if args.ade else ()
+        print(output.ical(dutylist, ade))
     return 0
 
 

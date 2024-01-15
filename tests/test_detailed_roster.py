@@ -180,3 +180,28 @@ class Test_duties(unittest.TestCase):
                         DT(2021, 10, 22, 16, 20)]),)),
         ]
         self.assertEqual(p.duties(data), expected_result)
+
+
+class TestAllDayEvents(unittest.TestCase):
+
+    def test_all_day_event_extraction(self):
+        SBY1 = ('SBY', SDT(17, 22))
+        SBY2 = (SDT(18, 2),)
+        PMI1 = ('6046', SDT(18, 21, 25), SDT(18, 21, 35), "PMI", "(A320)")
+        PMI2 = ("BRS", SDT(19, 23, 55), SDT(19, 0, 25))
+        data = (
+            (SD(16), (("D/O",), ("MN",))),
+            (SD(17), (("SNCR",), SBY1)),
+            (SD(18), (SBY2, PMI1)),
+            (SD(19), (PMI2, ("REST", "SNCR"))),
+            (SD(20), (("LVE",),))
+        )
+        expected_result = (
+            (SD(16), "D/O"),
+            (SD(17), "SNCR"),
+            (SD(19), "REST"),
+            (SD(19), "SNCR"),
+            (SD(20), "LVE")
+        )
+        self.assertEqual(sorted(p.all_day_events(data)),
+                         sorted(expected_result))
