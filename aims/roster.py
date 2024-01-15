@@ -6,13 +6,19 @@ from typing import Union, NamedTuple, Optional, cast
 import itertools as it
 
 
+Datum = Union[str, dt.datetime]
+DataBlock = tuple[Datum, ...]
+Column = tuple[dt.date, tuple[DataBlock, ...]]
+Line = tuple[str, ...]
+
+
 class Sector(NamedTuple):
     name: str
     from_: Optional[str]
     to: Optional[str]
     off: dt.datetime
     on: dt.datetime
-    all_times: tuple[dt.datetime, ...]
+    src: DataBlock
 
 
 class Duty(NamedTuple):
@@ -24,12 +30,6 @@ class Duty(NamedTuple):
 class CrewMember(NamedTuple):
     name: str
     role: str
-
-
-Datum = Union[str, dt.datetime]
-DataBlock = tuple[Datum, ...]
-Column = tuple[dt.date, tuple[DataBlock, ...]]
-Line = tuple[str, ...]
 
 
 class RosterException(Exception):
@@ -183,19 +183,17 @@ def _search_standard_block(
                 # found the marker for to and on
                 to = cast(str, block[c])
                 on = cast(dt.datetime, block[c + 1])
+                break
     return (id_, off, from_, to, on)
 
 
 def _extract_standard_sector(
         block: DataBlock, extra_block: DataBlock
 ) -> tuple[Optional[Sector], int]:
-    all_times = [X for X in block if isinstance(X, dt.datetime)]
+    src = block
     used = 1
     id_, off, from_, to, on = _search_standard_block(block)
     if from_ and not to:  # if "to" is  not found, try in the extra block
-        used = 2
-        all_times.extend([X for X in extra_block
-                          if isinstance(X, dt.datetime)])
         for c in range(len(extra_block) - 1):
             if (isinstance(extra_block[c], str)
                     and isinstance(extra_block[c + 1], dt.datetime)):
@@ -203,31 +201,27 @@ def _extract_standard_sector(
                 to = cast(str, extra_block[c])
                 on = cast(dt.datetime, extra_block[c + 1])
                 break
+        src = tuple(list(block) + list(extra_block))
+        used = 2
     if not to:
         return (None, 0)
     # fix for dragover case
     if on - off > dt.timedelta(1):
-        idx = all_times.index(on)
         on -= dt.timedelta(1)
-        all_times[idx] = on
-    return (Sector(id_, from_, to, cast(dt.datetime, off),
-                   on, tuple(all_times)), used)
+    return (Sector(id_, from_, to, cast(dt.datetime, off), on, src), used)
 
 
-def _extract_quasi_sector(tblock: DataBlock) -> tuple[Sector, int]:
-    block = list(tblock)
-    if (all(isinstance(X, dt.datetime) for X in block[1:])
-            and isinstance(block[0], str)):
-        if len(block) == 5:
-            off, on = cast(dt.datetime, block[2]), cast(dt.datetime, block[3])
-        else:
-            off, on = cast(dt.datetime, block[1]), cast(dt.datetime, block[-1])
-        all_times = [cast(dt.datetime, X) for X in block
-                     if isinstance(X, dt.datetime)]
-        return (Sector(cast(str, block[0]), None, None, off, on,
-                       tuple(all_times)), 1)
+def _extract_quasi_sector(block: DataBlock) -> Optional[Sector]:
+    assert len(block) > 1 and isinstance(block[0], str)
+    if (any(isinstance(X, str) for X in block[1:])):
+        return None
+    if len(block) == 5:
+        off, on = cast(dt.datetime, block[2]), cast(dt.datetime, block[3])
     else:
-        raise SectorFormatException
+        off, on = cast(dt.datetime, block[1]), cast(dt.datetime, block[-1])
+    if off > on:
+        off -= dt.timedelta(1)  # for dragover in first column
+    return Sector(cast(str, block[0]), None, None, off, on, block)
 
 
 def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
@@ -262,18 +256,18 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
         if processed[c]:  # Skip over processed blocks
             continue
         sector, used = _extract_standard_sector(data[c], data[c + 1])
-        for d in range(c, c + used):
-            processed[d] = True
-        if used:
-            retval.append(cast(Sector, sector))
+        if sector:
+            for d in range(c, c + used):
+                processed[d] = True
+            retval.append(sector)
     # extract quasi sectors
     for c in range(len(data) - 1):
         if processed[c]:  # Skip over processed blocks
             continue
-        sector, used = _extract_quasi_sector(data[c])
-        if used:
+        sector = _extract_quasi_sector(data[c])
+        if sector:
             processed[c] = True
-            retval.append(cast(Sector, sector))
+            retval.append(sector)
     return tuple(retval)
 
 
@@ -370,7 +364,7 @@ def duties(tsectors) -> list[Duty]:
     for group in it.groupby(sectors, lambda x: next(tag_it)):
         sector_group = list(group[1])
         retval.append(Duty(
-            min(sector_group[0].all_times),
-            max(sector_group[-1].all_times),
+            min(X for X in sector_group[0].src if isinstance(X, dt.datetime)),
+            max(X for X in sector_group[-1].src if isinstance(X, dt.datetime)),
             tuple(sector_group)))
     return retval
