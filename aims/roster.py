@@ -231,6 +231,16 @@ def _search_standard_block(
 def _extract_standard_sector(
         block: DataBlock, extra_block: DataBlock
 ) -> tuple[Optional[Sector], int]:
+    """Try to extract a standard sector from a DataBlock, and if required, the
+    following DataBlock
+
+    :param block: The DataBlock to process
+    :param extra_block: An extra block that will be searched for the
+        destination and on chocks time if those are not found in the primary
+        block.
+    :return: If successful, the retrieved Sector and the number of blocks
+        processed to find it. If unsuccessful, (None, 0).
+    """
     src = block
     used = 1
     id_, off, from_, to, on = _search_standard_block(block)
