@@ -180,6 +180,33 @@ def _process_column(
 def _search_standard_block(
         block: DataBlock
 ) -> tuple[str, dt.datetime, str, str, dt.datetime]:
+    """Extract id, times and airfields from a DataBlock.
+
+    The key assumptions are:
+
+    1. That the first occasion when a string *follows* a datetime is when the
+    string is the origin airport and the datetime is the off chocks time.
+
+    2. That the occasion thereafter that a string is *followed by* a datetime
+    is when the string is the destination airport and the datetime is the on
+    chocks time.
+
+    3. That the flight number is the nearest string above the origin airport.
+
+    So far this has proved robust, but a lot of random cruft gets injected into
+    rosters...
+
+    If no origin airport is found, the sector is probably a quasi sector. If an
+    origin airport is found but no destination airport is found, the sector
+    probably straddled midnight, in which case the destination airport and on
+    chocks time will be found in the next DataBlock in the stream.
+
+    :param block: The DataBlock to be processed.
+    :return: A tuple of the form (id, off, from, to, on). If not found, the
+        return values of off and on are default values and the return values of
+        id, from and to are empty strings.
+
+    """
     id_, from_, to = "", "", ""
     off, on = dt.datetime(1970, 1, 1), dt.datetime(1970, 1, 1)
     str_mask = [isinstance(X, str) for X in block]
