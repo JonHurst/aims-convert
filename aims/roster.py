@@ -286,6 +286,30 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
+def duties(tsectors) -> list[Duty]:
+    if not tsectors:
+        return []
+    sectors = list(tsectors)
+    sectors.sort(key=lambda x: x.off)
+    tags, last = [0], sectors[0].off
+    last = sectors[0].on
+    for sector in sectors[1:]:
+        if sector.off - last < dt.timedelta(hours=8):
+            tags.append(tags[-1])
+        else:
+            tags.append(tags[-1] + 1)
+        last = sector.on
+    tag_it = iter(tags)
+    retval: list[Duty] = []
+    for group in it.groupby(sectors, lambda x: next(tag_it)):
+        sector_group = list(group[1])
+        retval.append(Duty(
+            min(X for X in sector_group[0].src if isinstance(X, dt.datetime)),
+            max(X for X in sector_group[-1].src if isinstance(X, dt.datetime)),
+            tuple(sector_group)))
+    return retval
+
+
 def _crew_strings(lines: tuple[Line, ...]) -> tuple[str, ...]:
     # find header of crew table
     for c, l in enumerate(lines):
@@ -330,28 +354,4 @@ def crew_dict(lines: tuple[Line, ...]) -> CrewDict:
         else:
             for flight in route.split(","):
                 retval[(date, flight)] = tuple(crew)
-    return retval
-
-
-def duties(tsectors) -> list[Duty]:
-    if not tsectors:
-        return []
-    sectors = list(tsectors)
-    sectors.sort(key=lambda x: x.off)
-    tags, last = [0], sectors[0].off
-    last = sectors[0].on
-    for sector in sectors[1:]:
-        if sector.off - last < dt.timedelta(hours=8):
-            tags.append(tags[-1])
-        else:
-            tags.append(tags[-1] + 1)
-        last = sector.on
-    tag_it = iter(tags)
-    retval: list[Duty] = []
-    for group in it.groupby(sectors, lambda x: next(tag_it)):
-        sector_group = list(group[1])
-        retval.append(Duty(
-            min(X for X in sector_group[0].src if isinstance(X, dt.datetime)),
-            max(X for X in sector_group[-1].src if isinstance(X, dt.datetime)),
-            tuple(sector_group)))
     return retval
