@@ -118,7 +118,6 @@ class Test_sectors(unittest.TestCase):
                    SDT(7, 0, 29), SDT(7, 2, 46), PMIBRS))
         self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
 
-
     def test_empty(self):
         self.assertEqual(p.sectors(tuple()), tuple())
 
