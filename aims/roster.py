@@ -240,22 +240,29 @@ def _extract_quasi_sector(block: DataBlock) -> Optional[Sector]:
 
 
 def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
+    if not columns:
+        return []
     fake_start_time = dt.datetime.combine(columns[0][0], dt.time())
     data: list[DataBlock] = [("???", fake_start_time)]
     for col in columns:
         for block in col[1]:
-            if len(block) == 1 and isinstance(block[0], str):
+            # Drop runs of strings -- normally singleton all day events
+            if all(isinstance(X, str) for X in block):
                 continue
-            if isinstance(block[0], dt.datetime):
+            # Join touching datetimes -- standby like straddling midnight
+            if (isinstance(block[0], dt.datetime)
+                    and isinstance(data[-1][-1], dt.datetime)):
                 data[-1] = tuple(list(data[-1]) + list(block))
             else:
                 data.append(block)
-    # set up end guard
     fake_end_time = (dt.datetime.combine(columns[-1][0], dt.time())
                      + dt.timedelta(1))
+    # Fix up standby straddling midnight in last column
     if len(data[-1]) == 2 and isinstance(data[-1][1], dt.datetime):
         data[-1] = tuple(list(data[-1]) + [fake_end_time])
+    # set up end guard
     data.append(("???", fake_end_time, fake_end_time))
+    # remove start guard if unused
     if data[0] == ("???", fake_start_time):
         del data[0]
     return data

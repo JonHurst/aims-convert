@@ -119,6 +119,10 @@ class Test_sectors(unittest.TestCase):
         self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
 
 
+    def test_empty(self):
+        self.assertEqual(p.sectors(tuple()), tuple())
+
+
 class Test_duties(unittest.TestCase):
 
     def test_basic(self):
