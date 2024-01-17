@@ -312,7 +312,6 @@ class MainWindow(ttk.Frame):
 
     def __csv(self):
         txt = ""
-        dutylist, crewlist_map = [], {}
         html = self.__roster_html()
         if not html:
             return
@@ -321,35 +320,34 @@ class MainWindow(ttk.Frame):
         self.txt.update()
 
         lines = roster.lines(html)
-        sectors = roster.sectors(roster.columns(lines))
-        dutylist = roster.duties(sectors)
-        if not dutylist:
-            messagebox.showinfo('Duties', 'No relevant duties found')
+        sectors = tuple(X for X in roster.sectors(roster.columns(lines))
+                        if X.from_)
+        if not sectors:
+            messagebox.showinfo('Sectors', 'No relevant sectors found')
             self.txt.delete('1.0', tk.END)
             return
         crewlist_map = roster.crew_dict(lines)
         fo = True if self.ms.role.get() == 'fo' else False
-        txt = csv(dutylist, crewlist_map, fo)
+        txt = csv(sectors, crewlist_map, fo)
         if self.ms.with_header.get() is False:
             txt = txt.split("\n", 1)[1]
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'csv')
 
     def __ical(self):
-        dutylist = []
         html = self.__roster_html()
         if not html:
             return
         lines = roster.lines(html)
         columns = roster.columns(lines)
-        dutylist = roster.duties(roster.sectors(columns))
+        sectors = roster.sectors(columns)
         ade = roster.all_day_events(columns) if self.ms.with_ade.get() else ()
-        if not dutylist:
+        if not sectors:
             self.txt.delete('1.0', tk.END)
-            messagebox.showinfo('Duties', 'No relevant duties found')
+            messagebox.showinfo('Duties', 'No relevant sectors found')
             return
         # note: normalise newlines for Text widget - will restore on output
-        txt = ical(dutylist, ade).replace("\r\n", "\n")
+        txt = ical(sectors, ade).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 

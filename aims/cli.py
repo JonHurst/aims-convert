@@ -22,21 +22,21 @@ def main() -> int:
     args = _args()
     lines = roster.lines(sys.stdin.read())
     columns = roster.columns(lines)
-    dutylist = roster.duties(roster.sectors(columns))
+    sectors = roster.sectors(columns)
     if args.format == "roster":
-        print(output.roster(dutylist))
+        print(output.roster(sectors))
     elif args.format == "freeform":
         print(output.freeform(
-            dutylist,
+            sectors,
             roster.crew_dict(lines)))
     elif args.format == "csv":
         print(output.csv(
-            dutylist,
+            sectors,
             roster.crew_dict(lines),
             args.fo))
     elif args.format == "ical":
         ade = roster.all_day_events(columns) if args.ade else ()
-        print(output.ical(dutylist, ade))
+        print(output.ical(sectors, ade))
     return 0
 
 

@@ -7,7 +7,7 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster import Duty, Sector, CrewDict, DayEvent
+from aims.roster import Duty, Sector, CrewMember, CrewDict, DayEvent, duties
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 from aims.airframe_lookup import airframes, sector_id
@@ -53,13 +53,11 @@ def _night(sector: Sector) -> float:
     return round(night_duration / duration, 3)
 
 
-def roster(duties: tuple[Duty, ...]) -> str:
+def roster(sectors: tuple[Sector, ...]) -> str:
     UTC = Z("UTC")
     LT = Z("Europe/London")
     output = []
-    for duty in duties:
-        if not duty.sectors:
-            continue
+    for duty in duties(sectors):
         start, end = [X.replace(tzinfo=UTC).astimezone(LT)
                       for X in (duty.start, duty.finish)]
         duration = int((end - start).total_seconds()) // 60
@@ -87,14 +85,12 @@ def roster(duties: tuple[Duty, ...]) -> str:
 
 
 def freeform(
-        duties: tuple[Duty, ...],
+        sectors: tuple[Sector, ...],
         crewdict: CrewDict
 ) -> str:
     output = []
-    regntype = airframes(duties)
-    for duty in duties:
-        if not duty.sectors:
-            continue
+    regntype = airframes(sectors)
+    for duty in duties(sectors):
         output.append(f"{duty.start:%Y-%m-%d}")
         comment = ""
         if (len(duty.sectors) == 1 and not duty.sectors[0].from_):
@@ -127,48 +123,47 @@ def freeform(
 
 
 def csv(
-        duties: tuple[Duty, ...],
+        sectors: tuple[Sector, ...],
         crewdict: CrewDict,
         fo: bool
 ) -> str:
-    regntype = airframes(duties)
+    regntype = airframes(sectors)
     output = io.StringIO(newline='')
     fieldnames = ['Off Blocks', 'On Blocks', 'Origin', 'Destination',
                   'Registration', 'Type', 'Captain', 'Role', 'Crew', 'Night']
-    fieldname_map = (('Off Blocks', 'off'), ('On Blocks', 'on'),
-                     ('Origin', 'from_'), ('Destination', 'to'))
     writer = libcsv.DictWriter(
         output,
         fieldnames=fieldnames,
         extrasaction='ignore',
         dialect='unix')
     writer.writeheader()
-    for duty in duties:
-        if not duty.sectors:
+    for sector in sectors:
+        if not sector.from_:
             continue
-        duty_crew = list(crewdict.get((duty.start.date(), None), []))
-        for sector in duty.sectors:
-            if not sector.from_:
-                continue
-            sector_crew = list(crewdict.get(
-                (sector.off.date(), sector.name), []))
-            sec_dict = sector._asdict()
-            for fn, sfn in fieldname_map:
-                sec_dict[fn] = sec_dict[sfn]
-            sec_dict['Role'] = 'p1s' if fo else 'p1'
-            crewlist = duty_crew + sector_crew
-            sec_dict['Captain'] = 'Self'
-            reg, type_ = regntype.get(sector_id(sector), ("", ""))
-            sec_dict['Registration'] = reg
-            sec_dict['Type'] = type_
-            if fo and crewlist and crewlist[0].role == 'CP':
-                sec_dict['Captain'] = crewlist[0].name
-            crewstr = "; ".join([f"{X[1]}:{clean_name(X[0])}"
-                                 for X in crewlist])
-            sec_dict['Crew'] = crewstr
-            sec_dict['Night'] = _night(sector)
-            writer.writerow(sec_dict)
-
+        out_dict = {
+            'Off Blocks': sector.off,
+            'On Blocks': sector.on,
+            'Origin': sector.from_,
+            'Destination': sector.to
+        }
+        reg, type_ = regntype.get(sector_id(sector), ("", ""))
+        out_dict['Registration'] = reg
+        out_dict['Type'] = type_
+        date = sector.off.date()
+        crew = (list(crewdict.get((date, sector.name), tuple())) +
+                list(crewdict.get((date, None), tuple())))
+        crew = [CrewMember(clean_name(X[0]), X[1]) for X in crew]
+        out_dict['Captain'] = '' if fo else 'Self'
+        out_dict['Role'] = "p1s" if fo else "p1"
+        if fo:
+            for member in crew:
+                if member.role == 'CP':
+                    out_dict['Captain'] = member.name
+                    break
+        out_dict['Role'] = 'p1s' if fo else 'p1'
+        out_dict['Crew'] = "; ".join(f"{X.role}:{X.name} " for X in crew)
+        out_dict['Night'] = f"{_night(sector):0.3}"
+        writer.writerow(out_dict)
     output.seek(0)
     return output.read()
 
@@ -243,11 +238,11 @@ def _build_dict(duty: Duty, regntype) -> Dict[str, str]:
     return event
 
 
-def ical(duties: tuple[Duty, ...], all_day_events: tuple[DayEvent, ...]
+def ical(sectors: tuple[Sector, ...], all_day_events: tuple[DayEvent, ...]
          ) -> str:
     events = []
-    regntype = airframes(duties)
-    for duty in duties:
+    regntype = airframes(sectors)
+    for duty in duties(sectors):
         d = _build_dict(duty, regntype)
         events.append(vevent.format(**d))
     for ade in all_day_events:
