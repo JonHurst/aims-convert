@@ -159,7 +159,6 @@ class Test_duties(unittest.TestCase):
             Duty(SDT(24, 10), SDT(24, 16), (data[6],)))
         self.assertEqual(p.duties(data), expected_result)
 
-
     def test_empty(self):
         self.assertEqual(p.duties(tuple()), tuple())
 
