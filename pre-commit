@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+
+pycodestyle aims tests
+if [ $? -ne "0" ]
+then
+    exit 1
+fi
+
+mypy aims
+if [ $? -ne "0" ]
+then
+    exit 2
+fi
+
+pyflakes3 aims tests
+if [ $? -ne "0" ]
+then
+    exit 3
+fi
