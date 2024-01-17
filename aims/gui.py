@@ -320,14 +320,14 @@ class MainWindow(ttk.Frame):
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
 
-        l = roster.lines(html)
-        sectors = roster.sectors(roster.columns(l))
+        lines = roster.lines(html)
+        sectors = roster.sectors(roster.columns(lines))
         dutylist = roster.duties(sectors)
         if not dutylist:
             messagebox.showinfo('Duties', 'No relevant duties found')
             self.txt.delete('1.0', tk.END)
             return
-        crewlist_map = roster.crew_dict(l)
+        crewlist_map = roster.crew_dict(lines)
         fo = True if self.ms.role.get() == 'fo' else False
         txt = csv(dutylist, crewlist_map, fo)
         if self.ms.with_header.get() is False:
@@ -340,8 +340,8 @@ class MainWindow(ttk.Frame):
         html = self.__roster_html()
         if not html:
             return
-        l = roster.lines(html)
-        columns = roster.columns(l)
+        lines = roster.lines(html)
+        columns = roster.columns(lines)
         dutylist = roster.duties(roster.sectors(columns))
         ade = roster.all_day_events(columns) if self.ms.with_ade.get() else ()
         if not dutylist:

@@ -6,6 +6,7 @@ import argparse
 import aims.roster as roster
 import aims.output as output
 
+
 def _args():
     parser = argparse.ArgumentParser(
         description=(
@@ -19,19 +20,19 @@ def _args():
 
 def main() -> int:
     args = _args()
-    l = roster.lines(sys.stdin.read())
-    columns = roster.columns(l)
+    lines = roster.lines(sys.stdin.read())
+    columns = roster.columns(lines)
     dutylist = roster.duties(roster.sectors(columns))
     if args.format == "roster":
         print(output.roster(dutylist))
     elif args.format == "freeform":
         print(output.freeform(
             dutylist,
-            roster.crew_dict(l)))
+            roster.crew_dict(lines)))
     elif args.format == "csv":
         print(output.csv(
             dutylist,
-            roster.crew_dict(l),
+            roster.crew_dict(lines),
             args.fo))
     elif args.format == "ical":
         ade = roster.all_day_events(columns) if args.ade else ()
