@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+source venv/bin/activate
+
 pycodestyle aims tests
 if [ $? -ne "0" ]
 then
@@ -16,4 +18,11 @@ pyflakes3 aims tests
 if [ $? -ne "0" ]
 then
     exit 3
+fi
+
+cd tests
+python -m unittest
+if [ $? -ne "0" ]
+then
+    exit 4
 fi
