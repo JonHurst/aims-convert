@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from typing import List, Dict
+from typing import Dict
 from zoneinfo import ZoneInfo as Z
 import io
 import csv as libcsv
@@ -53,7 +53,7 @@ def _night(sector: Sector) -> float:
     return round(night_duration / duration, 3)
 
 
-def roster(duties: List[Duty]) -> str:
+def roster(duties: tuple[Duty, ...]) -> str:
     UTC = Z("UTC")
     LT = Z("Europe/London")
     output = []
@@ -87,7 +87,7 @@ def roster(duties: List[Duty]) -> str:
 
 
 def freeform(
-        duties: List[Duty],
+        duties: tuple[Duty, ...],
         crewdict: CrewDict
 ) -> str:
     output = []
@@ -127,7 +127,7 @@ def freeform(
 
 
 def csv(
-        duties: List[Duty],
+        duties: tuple[Duty, ...],
         crewdict: CrewDict,
         fo: bool
 ) -> str:
@@ -242,7 +242,8 @@ def _build_dict(duty: Duty, regntype) -> Dict[str, str]:
     return event
 
 
-def ical(duties: List[Duty], all_day_events: tuple[DayEvent, ...]) -> str:
+def ical(duties: tuple[Duty, ...], all_day_events: tuple[DayEvent, ...]
+         ) -> str:
     events = []
     regntype = airframes(duties)
     for duty in duties:

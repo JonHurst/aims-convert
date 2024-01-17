@@ -6,7 +6,7 @@ def sector_id(sector: Sector) -> str:
     return f'{sector.off:%Y%m%dT%H%M}F{sector.name}'
 
 
-def airframes(dutylist: list[Duty]) -> dict[str, tuple[str, str]]:
+def airframes(dutylist: tuple[Duty, ...]) -> dict[str, tuple[str, str]]:
     ids = []
     for duty in dutylist:
         if duty.sectors:
