@@ -13,7 +13,7 @@ from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 from aims.airframe_lookup import airframes, sector_id
 
 
-def clean(name: str) -> str:
+def clean_name(name: str) -> str:
     parts = [X.strip().capitalize() for X in name.split()]
     for c, part in enumerate(parts):
         # remove bracketted stuff
@@ -107,7 +107,7 @@ def freeform(
                 continue
             sector_crew = list(crewdict.get(
                 (sector.off.date(), sector.name), []))
-            crew = [f"{X.role}:{clean(X.name)}"
+            crew = [f"{X.role}:{clean_name(X.name)}"
                     for X in duty_crew + sector_crew]
             if crew != last_crew:
                 output.append(f"{{ {', '.join(crew)} }}")
@@ -163,7 +163,8 @@ def csv(
             sec_dict['Type'] = type_
             if fo and crewlist and crewlist[0].role == 'CP':
                 sec_dict['Captain'] = crewlist[0].name
-            crewstr = "; ".join([f"{X[1]}:{clean(X[0])}" for X in crewlist])
+            crewstr = "; ".join([f"{X[1]}:{clean_name(X[0])}"
+                                 for X in crewlist])
             sec_dict['Crew'] = crewstr
             sec_dict['Night'] = _night(sector)
             writer.writerow(sec_dict)
