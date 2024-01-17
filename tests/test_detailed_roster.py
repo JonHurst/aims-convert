@@ -152,7 +152,7 @@ class Test_duties(unittest.TestCase):
             Sector('SBY', None, None,
                    SDT(24, 10), SDT(24, 16), SBY2))
         expected_result = (
-            Duty(SDT(17, 22), (SDT(18, 2)), (data[0],)),
+            Duty(SDT(17, 22), SDT(18, 2), (data[0],)),
             Duty(SDT(18, 21, 25), SDT(19, 0, 25), (data[1],)),
             Duty(SDT(21, 5, 30), SDT(21, 14, 29), (data[2], data[3])),
             Duty(SDT(22, 4, 15), SDT(22, 16, 20), (data[4], data[5])),

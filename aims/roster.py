@@ -386,6 +386,7 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
     if not all(processed[:-1]):
         print("Warning: Some sectors could not be processed",
               file=sys.stderr)
+    retval.sort(key=lambda x: x.off)
     return tuple(retval)
 
 
@@ -397,14 +398,16 @@ def duties(sectors: tuple[Sector, ...]) -> tuple[Duty, ...]:
     accounts for two consecutive airport standbys (i.e. no pre/post duty time
     required) being separate duties with minumum rest between.
 
-    :param sectors: A tuple of Sector objects to be grouped
+    :param sectors: The tuple of Sector objects to be grouped, sorted by off
+        chocks time
     :return: A sorted tuple of Duty objects with the input Sectors grouped and
         duty start and finish times extracted.
     """
     assert all(isinstance(X, Sector) for X in sectors)
+    assert tuple(sorted(sectors, key=lambda x: x.off)) == sectors
     groups: list[list[Sector]] = []
     last = dt.datetime.min
-    for sector in sorted(sectors, key=lambda x: x.off):
+    for sector in sectors:
         if sector.off - last >= dt.timedelta(hours=11):
             groups.append([sector])
         else:
