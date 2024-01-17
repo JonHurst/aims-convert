@@ -160,6 +160,23 @@ class Test_duties(unittest.TestCase):
         self.assertEqual(p.duties(data), expected_result)
 
 
+    def test_empty(self):
+        self.assertEqual(p.duties(tuple()), tuple())
+
+    def test_bad_input(self):
+        SBY1 = ('SBY', SDT(17, 22), (SDT(18, 2)))
+        with self.subTest("Sector not in tuple"):
+            with self.assertRaises(AssertionError):
+                p.duties(Sector('SBY', None, None,
+                                SDT(17, 22), SDT(18, 2), SBY1))
+        with self.subTest("None"):
+            with self.assertRaises(TypeError):
+                p.duties(None)
+        with self.subTest("Tuple but wrong type"):
+            with self.assertRaises(AssertionError):
+                p.duties((1, 2))
+
+
 class TestAllDayEvents(unittest.TestCase):
 
     def test_all_day_event_extraction(self):

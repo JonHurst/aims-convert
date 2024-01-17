@@ -402,6 +402,7 @@ def duties(sectors: tuple[Sector, ...]) -> tuple[Duty, ...]:
     :return: A sorted tuple of Duty objects with the input Sectors grouped and
         duty start and finish times extracted.
     """
+    assert all(isinstance(X, Sector) for X in sectors)
     groups: list[list[Sector]] = []
     last = dt.datetime.min
     for sector in sorted(sectors, key=lambda x: x.off):
