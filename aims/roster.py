@@ -390,28 +390,33 @@ def sectors(columns: tuple[Column, ...]) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
-def duties(tsectors) -> list[Duty]:
-    if not tsectors:
-        return []
-    sectors = list(tsectors)
-    sectors.sort(key=lambda x: x.off)
-    tags, last = [0], sectors[0].off
-    last = sectors[0].on
-    for sector in sectors[1:]:
-        if sector.off - last < dt.timedelta(hours=8):
-            tags.append(tags[-1])
+def duties(sectors: tuple[Sector, ...]) -> tuple[Duty, ...]:
+    """Group sectors into duties.
+
+    A sector is considered to be part of the same duty if the time elapsed
+    since the on.chocks of the previous sector is 11 hours or greater. This
+    accounts for two consecutive airport standbys (i.e. no pre/post duty time
+    required) being separate duties with minumum rest between.
+
+    :param sectors: A tuple of Sector objects to be grouped
+    :return: A sorted tuple of Duty objects with the input Sectors grouped and
+        duty start and finish times extracted.
+    """
+    groups: list[list[Sector]] = []
+    last = dt.datetime.min
+    for sector in sorted(sectors, key=lambda x: x.off):
+        if sector.off - last >= dt.timedelta(hours=11):
+            groups.append([sector])
         else:
-            tags.append(tags[-1] + 1)
+            groups[-1].append(sector)
         last = sector.on
-    tag_it = iter(tags)
     retval: list[Duty] = []
-    for group in it.groupby(sectors, lambda x: next(tag_it)):
-        sector_group = list(group[1])
+    for group in groups:
         retval.append(Duty(
-            min(X for X in sector_group[0].src if isinstance(X, dt.datetime)),
-            max(X for X in sector_group[-1].src if isinstance(X, dt.datetime)),
-            tuple(sector_group)))
-    return retval
+            [X for X in group[0].src if isinstance(X, dt.datetime)][0],
+            [X for X in group[-1].src if isinstance(X, dt.datetime)][-1],
+            tuple(group)))
+    return tuple(retval)
 
 
 def _crew_strings(lines: tuple[Line, ...]) -> tuple[str, ...]:

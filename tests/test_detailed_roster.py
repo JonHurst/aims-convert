@@ -26,7 +26,7 @@ class Test_sectors(unittest.TestCase):
                   'BRS', 'SPU', SDT(22, 7, 56), '(320)')
         SPUBRS = ('6206', SDT(22, 13, 16), 'SPU', 'BRS',
                   SDT(22, 15, 50), SDT(22, 16, 20), '(320)', 'FO')
-        SBY = ('SBY', SDT(23, 10), SDT(23, 16))
+        SBY = ('SBY', SDT(24, 10), SDT(24, 16))
         data = ((SD(21), (BRSFNC, FNCBRS)),
                 (SD(22), (BRSSPU, SPUBRS)),
                 (SD(23), (SBY,)))
@@ -40,7 +40,7 @@ class Test_sectors(unittest.TestCase):
             Sector('6206', 'SPU', 'BRS',
                    SDT(22, 13, 16), SDT(22, 15, 50), SPUBRS),
             Sector('SBY', None, None,
-                   SDT(23, 10), SDT(23, 16), SBY))
+                   SDT(24, 10), SDT(24, 16), SBY))
         self.assertEqual(sorted(p.sectors(data)), sorted(expected_result))
 
     def test_across_midnight(self):
@@ -124,61 +124,39 @@ class Test_sectors(unittest.TestCase):
 
 class Test_duties(unittest.TestCase):
 
-    def test_basic(self):
-        data = [
-            Sector('SBY', None, None, DT(2021, 5, 17, 22), DT(2021, 5, 18, 2),
-                   [DT(2021, 5, 17, 22), DT(2021, 5, 18, 2)]),
+    def test_duties(self):
+        SBY1 = ('SBY', SDT(17, 22), (SDT(18, 2)))
+        PMI = ('6046', SDT(18, 21, 25), SDT(18, 21, 35), "PMI", "(A320)",
+               "BRS", SDT(19, 23, 55), SDT(19, 0, 25))
+        BRSFNC = ('EZS', '6245', SDT(21, 5, 30), SDT(21, 6, 34),
+                  'BRS', 'FNC', SDT(21, 9, 45), '(320)')
+        FNCBRS = ('EJU', '6246', SDT(21, 10, 32), 'FNC', 'BRS',
+                  SDT(21, 13, 59), SDT(21, 14, 29), '(320)')
+        BRSSPU = ('G\xa0EJU', '6205', SDT(22, 4, 15), SDT(22, 5, 12),
+                  'BRS', 'SPU', SDT(22, 7, 56), '(320)')
+        SPUBRS = ('6206', SDT(22, 13, 16), 'SPU', 'BRS',
+                  SDT(22, 15, 50), SDT(22, 16, 20), '(320)', 'FO')
+        SBY2 = ('SBY', SDT(24, 10), SDT(24, 16))
+        data = (
+            Sector('SBY', None, None, SDT(17, 22), SDT(18, 2), SBY1),
             Sector('6046', "PMI", "BRS",
-                   DT(2021, 5, 18, 21, 35), DT(2021, 5, 18, 23, 55),
-                   [DT(2021, 5, 18, 21, 25), DT(2021, 5, 18, 21, 35),
-                    DT(2021, 5, 18, 23, 55), DT(2021, 5, 19, 0, 25)]),
+                   SDT(18, 21, 35), SDT(18, 23, 55), PMI),
             Sector('6245', 'BRS', 'FNC',
-                   DT(2021, 10, 21, 6, 34), DT(2021, 10, 21, 9, 45),
-                   [DT(2021, 10, 21, 5, 30), DT(2021, 10, 21, 6, 34),
-                    DT(2021, 10, 21, 9, 45)]),
+                   SDT(21, 6, 34), SDT(21, 9, 45), BRSFNC),
             Sector('6246', 'FNC', 'BRS',
-                   DT(2021, 10, 21, 10, 32), DT(2021, 10, 21, 13, 59),
-                   [DT(2021, 10, 21, 10, 32), DT(2021, 10, 21, 13, 59),
-                    DT(2021, 10, 21, 14, 29)]),
+                   SDT(21, 10, 32), SDT(21, 13, 59), FNCBRS),
             Sector('6205', 'BRS', 'SPU',
-                   DT(2021, 10, 22, 5, 12), DT(2021, 10, 22, 7, 56),
-                   [DT(2021, 10, 22, 4, 15), DT(2021, 10, 22, 5, 12),
-                    DT(2021, 10, 22, 7, 56),]),
+                   SDT(22, 5, 12), SDT(22, 7, 56), BRSSPU),
             Sector('6206', 'SPU', 'BRS',
-                   DT(2021, 10, 22, 13, 16), DT(2021, 10, 22, 15, 50),
-                   [DT(2021, 10, 22, 13, 16), DT(2021, 10, 22, 15, 50),
-                    DT(2021, 10, 22, 16, 20)])
-        ]
-
-        expected_result = [
-            Duty(DT(2021, 5, 17, 22), DT(2021, 5, 18, 2), (
-                Sector('SBY', None, None, DT(2021, 5, 17, 22),
-                       DT(2021, 5, 18, 2),
-                       [DT(2021, 5, 17, 22), DT(2021, 5, 18, 2)]),)),
-            Duty(DT(2021, 5, 18, 21, 25), DT(2021, 5, 19, 0, 25), (
-                Sector('6046', "PMI", "BRS",
-                       DT(2021, 5, 18, 21, 35), DT(2021, 5, 18, 23, 55),
-                       [DT(2021, 5, 18, 21, 25), DT(2021, 5, 18, 21, 35),
-                        DT(2021, 5, 18, 23, 55), DT(2021, 5, 19, 0, 25)]),)),
-            Duty(DT(2021, 10, 21, 5, 30), DT(2021, 10, 21, 14, 29), (
-                Sector('6245', 'BRS', 'FNC',
-                       DT(2021, 10, 21, 6, 34), DT(2021, 10, 21, 9, 45),
-                       [DT(2021, 10, 21, 5, 30), DT(2021, 10, 21, 6, 34),
-                        DT(2021, 10, 21, 9, 45)]),
-                Sector('6246', 'FNC', 'BRS',
-                       DT(2021, 10, 21, 10, 32), DT(2021, 10, 21, 13, 59),
-                       [DT(2021, 10, 21, 10, 32), DT(2021, 10, 21, 13, 59),
-                        DT(2021, 10, 21, 14, 29)]),)),
-            Duty(DT(2021, 10, 22, 4, 15), DT(2021, 10, 22, 16, 20), (
-                Sector('6205', 'BRS', 'SPU',
-                       DT(2021, 10, 22, 5, 12), DT(2021, 10, 22, 7, 56),
-                       [DT(2021, 10, 22, 4, 15), DT(2021, 10, 22, 5, 12),
-                        DT(2021, 10, 22, 7, 56),]),
-                Sector('6206', 'SPU', 'BRS',
-                       DT(2021, 10, 22, 13, 16), DT(2021, 10, 22, 15, 50),
-                       [DT(2021, 10, 22, 13, 16), DT(2021, 10, 22, 15, 50),
-                        DT(2021, 10, 22, 16, 20)]),)),
-        ]
+                   SDT(22, 13, 16), SDT(22, 15, 50), SPUBRS),
+            Sector('SBY', None, None,
+                   SDT(24, 10), SDT(24, 16), SBY2))
+        expected_result = (
+            Duty(SDT(17, 22), (SDT(18, 2)), (data[0],)),
+            Duty(SDT(18, 21, 25), SDT(19, 0, 25), (data[1],)),
+            Duty(SDT(21, 5, 30), SDT(21, 14, 29), (data[2], data[3])),
+            Duty(SDT(22, 4, 15), SDT(22, 16, 20), (data[4], data[5])),
+            Duty(SDT(24, 10), SDT(24, 16), (data[6],)))
         self.assertEqual(p.duties(data), expected_result)
 
 
