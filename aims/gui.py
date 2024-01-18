@@ -400,6 +400,7 @@ class MainWindow(ttk.Frame):
 def main():
     root = tk.Tk()
     root.title("aimsgui")
+    root.option_add('*Dialog.msg.font', 'TkHeadingFont')
     mw = MainWindow(root)
     mw.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
