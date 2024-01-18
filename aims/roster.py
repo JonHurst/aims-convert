@@ -333,6 +333,37 @@ def _extract_quasi_sector(block: DataBlock) -> Optional[Sector]:
 
 
 def _columns_to_datastream(columns: tuple[Column, ...]) -> list[DataBlock]:
+    """Process a tuple of columns into a stream of DataBlocks suitable for
+    sector extraction.
+
+    This function prepares the data for sector extraction by dealing with the
+    anomalies caused by sectors and duties straddling midnight in a columnar
+    presentation.
+
+    If a sector straddles mignight, its data is found in two DataBlocks. The
+    second DataBlock of a normal sector so split has the same form as a
+    standby. The correct interpretation requires the context of the preceeding
+    block. This is dealt with in the _extract_standard_sector function rather
+    than here. What we can deal with is standby duties straddling midnight as
+    they have a distinctive presentation where the first of the pair ends in a
+    datetime and the second starts with a datetime. Thus if two datetimes
+    touch, we can confidently combine the blocks at this stage.
+
+    The problem is even more tricky for the first sector of the first column of
+    the roster and the last sector of the last column. As far as possible this
+    is fixed up in this function by adding fake data as required. This retains
+    the maximum amount of data, and thus minimises any manual fix up that will
+    need to be done by the user -- manual intervention is unavoidable since the
+    data is simply unavailable.
+
+    :param columns: A tuple of Column objects representing the roster.
+    :return: A list of Datablocks suitable for sector extraction. Runs of
+        strings (i.e. all day events etc.) are removed, standbys straddling
+        midnight are joined, standbys straddling the first morning and the last
+        evening of the roster are fixed up with fake data and a guard is added
+        to the end so that if a normal sector straddled the last evening,
+        normal processing will fix it up with fake data.
+    """
     if not columns:
         return []
     fake_start_time = dt.datetime.combine(columns[0][0], dt.time())
