@@ -1,0 +1,25 @@
+import json
+
+import aims.roster as roster
+import aims.output as output
+
+
+def lambda_handler(event, context):
+    data = json.loads(event["body"])
+    in_ = data["roster"]
+    format = data["format"]
+    options = data["options"]
+    lines = roster.lines(in_)
+    columns = roster.columns(lines)
+    sectors = roster.sectors(columns)
+    if format == "csv":
+        out = output.csv(
+            sectors,
+            roster.crew_dict(lines),
+            "fo" in options)
+    else:
+        out = "Not implemented"
+    return {
+        'statusCode': 200,
+        'body': json.dumps(out)
+    }
