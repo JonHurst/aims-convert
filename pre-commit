@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-mypy aims
+mypy aims/ tests/
 if [ $? -ne "0" ]
 then
     exit 2
