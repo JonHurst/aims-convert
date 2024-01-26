@@ -17,6 +17,15 @@ def lambda_handler(event, context):
             sectors,
             roster.crew_dict(lines),
             "fo" in options)
+    elif format == "roster":
+        out = output.roster(sectors)
+    elif format == "freeform":
+        out = output.freeform(
+            sectors,
+            roster.crew_dict(lines))
+    elif format == "ical":
+        ade = roster.all_day_events(columns) if "ade" in options else ()
+        out = output.ical(sectors, ade)
     else:
         out = "Not implemented"
     return {

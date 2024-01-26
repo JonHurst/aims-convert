@@ -42,15 +42,15 @@ def clean_name(name: str) -> str:
     return " ".join([X for X in parts if X])
 
 
-def _night(sector: Sector) -> float:
+def _night(sector: Sector) -> tuple[int, bool]:
     try:
+        night_landing = nightcalc.night_p(nvecs[sector.to], sector.on)
         night_duration = nightcalc.night_duration(
             nvecs[sector.from_], nvecs[sector.to],
             sector.off, sector.on)
     except KeyError:
-        return 0.0
-    duration = (sector.on - sector.off).total_seconds() / 60
-    return round(night_duration / duration, 3)
+        return (0, False)
+    return (round(night_duration), night_landing)
 
 
 def roster(sectors: tuple[Sector, ...]) -> str:
@@ -108,16 +108,22 @@ def freeform(
             if crew != last_crew:
                 output.append(f"{{ {', '.join(crew)} }}")
                 last_crew = crew
-            reg, type_ = regntype.get(sector_id(sector), (None, None))
-            if reg and type_ and reg != last_reg:
+            reg, type_ = regntype.get(sector_id(sector), ("?-????", "???"))
+            if reg != last_reg:
                 output.append(f"{reg}:{type_}")
                 last_reg = reg
             # sector
-            night_frac = _night(sector)
-            night_str = f" { night_frac:0.3}" if night_frac else ""
+            duration = (sector.on - sector.off).total_seconds() // 60
+            night_duration, night_landing = _night(sector)
+            night_flag = ""
+            if night_duration == duration:
+                night_flag = " n"
+            elif night_duration:
+                ldg_flag = " ln" if night_landing else ""
+                night_flag = f" n{night_duration}{ldg_flag}"
             output.append(
                 f"{sector.from_}/{sector.to} "
-                f"{sector.off:%H%M}/{sector.on:%H%M}{night_str}")
+                f"{sector.off:%H%M}/{sector.on:%H%M}{night_flag}")
         output.append("")
     return "\n".join(output)
 
@@ -162,7 +168,7 @@ def csv(
                     break
         out_dict['Role'] = 'p1s' if fo else 'p1'
         out_dict['Crew'] = "; ".join(f"{X.role}:{X.name} " for X in crew)
-        out_dict['Night'] = f"{_night(sector):0.3}"
+        out_dict['Night'] = f"{_night(sector)[0]}"
         writer.writerow(out_dict)
     output.seek(0)
     return output.read()
