@@ -12,7 +12,7 @@ def _args():
         description=(
             'Process an AIMS detailed roster into various useful formats.'))
     parser.add_argument('format',
-                        choices=['roster', 'freeform', 'csv', 'ical'])
+                        choices=['roster', 'efj', 'csv', 'ical'])
     parser.add_argument('--fo', action="store_true")
     parser.add_argument('--ade', action="store_true")
     return parser.parse_args()
@@ -25,7 +25,7 @@ def main() -> int:
     sectors = roster.sectors(columns)
     if args.format == "roster":
         print(output.roster(sectors))
-    elif args.format == "freeform":
+    elif args.format == "efj":
         print(output.freeform(
             sectors,
             roster.crew_dict(lines)))

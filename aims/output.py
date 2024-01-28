@@ -120,7 +120,7 @@ def freeform(
                 night_flag = " n"
             elif night_duration:
                 ldg_flag = " ln" if night_landing else ""
-                night_flag = f" n{night_duration}{ldg_flag}"
+                night_flag = f" n:{night_duration}{ldg_flag}"
             output.append(
                 f"{sector.from_}/{sector.to} "
                 f"{sector.off:%H%M}/{sector.on:%H%M}{night_flag}")
