@@ -84,7 +84,7 @@ def roster(sectors: tuple[Sector, ...]) -> str:
     return "\n".join(output)
 
 
-def freeform(
+def efj(
         sectors: tuple[Sector, ...],
         crewdict: CrewDict
 ) -> str:

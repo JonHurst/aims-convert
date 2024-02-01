@@ -25,7 +25,7 @@ def main() -> int:
     if args.format == "roster":
         print(output.roster(sectors))
     elif args.format == "efj":
-        print(output.freeform(
+        print(output.efj(
             sectors,
             roster.crew_dict(lines)))
     elif args.format == "csv":
