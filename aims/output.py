@@ -130,8 +130,7 @@ def freeform(
 
 def csv(
         sectors: tuple[Sector, ...],
-        crewdict: CrewDict,
-        fo: bool
+        crewdict: CrewDict
 ) -> str:
     regntype = airframes(sectors)
     output = io.StringIO(newline='')

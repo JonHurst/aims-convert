@@ -13,7 +13,6 @@ def _args():
             'Process an AIMS detailed roster into various useful formats.'))
     parser.add_argument('format',
                         choices=['roster', 'efj', 'csv', 'ical'])
-    parser.add_argument('--fo', action="store_true")
     parser.add_argument('--ade', action="store_true")
     return parser.parse_args()
 
@@ -32,8 +31,7 @@ def main() -> int:
     elif args.format == "csv":
         print(output.csv(
             sectors,
-            roster.crew_dict(lines),
-            args.fo))
+            roster.crew_dict(lines)))
     elif args.format == "ical":
         ade = roster.all_day_events(columns) if args.ade else ()
         print(output.ical(sectors, ade))
