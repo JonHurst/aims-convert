@@ -134,13 +134,12 @@ def csv(
 ) -> str:
     regntype = airframes(sectors)
     output = io.StringIO(newline='')
-    fieldnames = ['Off Blocks', 'On Blocks', 'Origin', 'Destination',
-                  'Registration', 'Type', 'Captain', 'Role', 'Crew', 'Night']
+    fieldnames = ['Off Blocks', 'On Blocks', 'Duration', 'Night', 'Origin',
+                  'Destination', 'Registration', 'Type', 'Captain', 'Crew']
     writer = libcsv.DictWriter(
         output,
         fieldnames=fieldnames,
-        extrasaction='ignore',
-        dialect='unix')
+        extrasaction='ignore')
     writer.writeheader()
     for sector in sectors:
         if not sector.from_:
@@ -148,6 +147,8 @@ def csv(
         out_dict = {
             'Off Blocks': sector.off,
             'On Blocks': sector.on,
+            'Duration': (sector.on - sector.off) // dt.timedelta(minutes=1),
+            'Night': _night(sector)[0],
             'Origin': sector.from_,
             'Destination': sector.to
         }
@@ -158,16 +159,12 @@ def csv(
         crew = (list(crewdict.get((date, sector.name), tuple())) +
                 list(crewdict.get((date, None), tuple())))
         crew = [CrewMember(clean_name(X[0]), X[1]) for X in crew]
-        out_dict['Captain'] = '' if fo else 'Self'
-        out_dict['Role'] = "p1s" if fo else "p1"
-        if fo:
-            for member in crew:
-                if member.role == 'CP':
-                    out_dict['Captain'] = member.name
-                    break
-        out_dict['Role'] = 'p1s' if fo else 'p1'
+        captains = [X.name for X in crew if X.role == "CP"]
+        if not captains:
+            out_dict['Captain'] = 'Self'
+        else:
+            out_dict['Captain'] = ', '.join(captains)
         out_dict['Crew'] = "; ".join(f"{X.role}:{X.name} " for X in crew)
-        out_dict['Night'] = f"{_night(sector)[0]}"
         writer.writerow(out_dict)
     output.seek(0)
     return output.read()
