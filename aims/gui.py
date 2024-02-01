@@ -386,12 +386,17 @@ class MainWindow(ttk.Frame):
 
     def __save(self, _):
         output_type = self.ms.output_type.get()
-        assert output_type in ('csv', 'ical')
+        assert output_type in ('csv', 'ical', 'efj')
         if output_type == 'csv':
             pathtype = 'csvSavePath'
             filetypes = (("CSV file", "*.csv"),
                          ("All", "*.*"))
             default_ext = '.csv'
+        elif output_type == 'efj':
+            pathtype = 'efjSavePath'
+            filetypes = (("Text file", "*.txt"),
+                         ("All", "*.*"))
+            default_ext = '.txt'
         else:
             pathtype = 'icalSavePath'
             filetypes = (("ICAL file", "*.ics"),
