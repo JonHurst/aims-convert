@@ -7,8 +7,7 @@ from tkinter import filedialog
 
 import aims.roster as roster
 
-from aims.output import csv
-from aims.output import ical
+from aims.output import csv, ical, efj
 
 VERSION = "1.1"
 
@@ -17,54 +16,32 @@ SETTINGS_FILE = os.path.expanduser("~/.aimsgui")
 
 class ModeSelector(ttk.Frame):
 
-    def __init__(self, parent, initial_role, with_header, with_ade):
+    def __init__(self, parent, with_ade):
         ttk.Frame.__init__(self, parent)
-        self.role = tk.StringVar()
-        self.role.set(initial_role or 'captain')
         self.output_type = tk.StringVar()
-        self.output_type.set('csv')
-        self.with_header = tk.BooleanVar()
-        self.with_header.set(with_header)
+        self.output_type.set('efj')
         self.with_ade = tk.BooleanVar()
         self.with_ade.set(with_ade)
-        self.frm_csv_options = None
-        self.frm_csv_settings = None
         self.__make_widgets()
 
     def __make_widgets(self):
         frm_output_type = ttk.LabelFrame(self, text="Output type")
         frm_output_type.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
+        efj_output = ttk.Radiobutton(
+            frm_output_type, text=" Flight Journal",
+            variable=self.output_type, value='efj',
+            command=self.output_type_changed)
+        efj_output.pack(fill=tk.X)
         csv_output = ttk.Radiobutton(
-            frm_output_type, text=" Logbook (csv)",
+            frm_output_type, text=" Logbook (.csv)",
             variable=self.output_type, value='csv',
             command=self.output_type_changed)
         csv_output.pack(fill=tk.X)
         ical_output = ttk.Radiobutton(
-            frm_output_type, text=" Roster (iCal)",
+            frm_output_type, text=" Roster (.ics)",
             variable=self.output_type, value='ical',
             command=self.output_type_changed)
         ical_output.pack(fill=tk.X)
-
-        self.frm_csv_settings = ttk.LabelFrame(self, text="Role")
-        captain = ttk.Radiobutton(
-            self.frm_csv_settings, text=" Captain",
-            variable=self.role, value='captain',
-            command=self.role_changed)
-        captain.pack(fill=tk.X)
-        fo = ttk.Radiobutton(
-            self.frm_csv_settings, text=" FO",
-            variable=self.role, value='fo',
-            command=self.role_changed)
-        fo.pack(fill=tk.X)
-        self.frm_csv_settings.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
-
-        self.frm_csv_options = ttk.LabelFrame(self, text="Options")
-        with_header = ttk.Checkbutton(self.frm_csv_options,
-                                      text=" Header",
-                                      variable=self.with_header,
-                                      command=self.options_changed)
-        with_header.pack(fill=tk.X)
-        self.frm_csv_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
 
         self.frm_ical_options = ttk.LabelFrame(self, text="Options")
         with_ade = ttk.Checkbutton(self.frm_ical_options,
@@ -74,18 +51,11 @@ class ModeSelector(ttk.Frame):
         with_ade.pack(fill=tk.X)
 
     def output_type_changed(self):
-        assert self.output_type.get() in ('csv', 'ical')
-        if self.output_type.get() == 'csv':
-            self.frm_ical_options.pack_forget()
-            self.frm_csv_settings.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
-            self.frm_csv_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
-        else:
-            self.frm_csv_settings.pack_forget()
-            self.frm_csv_options.pack_forget()
+        assert self.output_type.get() in ('csv', 'ical', 'efj')
+        if self.output_type.get() == 'ical':
             self.frm_ical_options.pack(fill=tk.X, expand=True, ipadx=5, pady=5)
-        self.event_generate("<<ModeChange>>", when="tail")
-
-    def role_changed(self):
+        else:
+            self.frm_ical_options.pack_forget()
         self.event_generate("<<ModeChange>>", when="tail")
 
     def options_changed(self):
@@ -102,7 +72,7 @@ class Actions(ttk.Frame):
         frm_1 = ttk.Frame(self)
         frm_1.pack(fill=tk.X)
         btn_convert = ttk.Button(
-            frm_1, text="Import", width=0,
+            frm_1, text="Load Roster", width=0,
             command=lambda: self.event_generate("<<Action-Import>>"))
         btn_convert.pack(fill=tk.X)
 
@@ -134,7 +104,8 @@ class Actions(ttk.Frame):
 class TextWithSyntaxHighlighting(tk.Text):
 
     def __init__(self, parent=None, **kwargs):
-        tk.Text.__init__(self, parent, background='white', **kwargs)
+        tk.Text.__init__(self, parent, background='white',
+                         wrap="none", **kwargs)
         self.highlight_mode = None
         self.tag_configure("grayed", foreground="#909090")
         self.tag_configure("keyword", foreground="green")
@@ -158,6 +129,8 @@ class TextWithSyntaxHighlighting(tk.Text):
             self.highlight_vcalendar()
         elif self.highlight_mode == 'csv':
             self.highlight_csv()
+        elif self.highlight_mode == 'efj':
+            self.highlight_efj()
         self.edit_modified(False)
 
     def highlight_vcalendar(self):
@@ -216,6 +189,39 @@ class TextWithSyntaxHighlighting(tk.Text):
             start_idx = f"{new_idx} + {count.get()} chars"
             self.tag_add("grayed", new_idx, start_idx)
 
+    def highlight_efj(self):
+        count = tk.IntVar()
+        start_idx = "1.0"
+        while True:
+            new_idx = self.search(
+                r"\d{4}-\d{2}-\d{2}",
+                start_idx, count=count, regexp=True,
+                stopindex="end")
+            if not new_idx:
+                break
+            start_idx = f"{new_idx} + {count.get()} chars"
+            self.tag_add("datetime", new_idx, start_idx)
+        start_idx = "1.0"
+        while True:
+            new_idx = self.search(
+                r"\d{4}/\d{4}",
+                start_idx, count=count, regexp=True,
+                stopindex="end")
+            if not new_idx:
+                break
+            start_idx = f"{new_idx} + {count.get()} chars"
+            self.tag_add("datetime", new_idx, start_idx)
+        start_idx = "1.0"
+        while True:
+            new_idx = self.search(
+                "CP:|FO:|PU:|FA:",
+                start_idx, count=count, regexp=True,
+                stopindex="end")
+            if not new_idx:
+                break
+            start_idx = f"{new_idx} + {count.get()} chars"
+            self.tag_add("keyword", new_idx, start_idx)
+
 
 class MainWindow(ttk.Frame):
 
@@ -234,20 +240,22 @@ class MainWindow(ttk.Frame):
     def __make_widgets(self):
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
-        sb = ttk.Scrollbar(self)
+        sb = ttk.Scrollbar(self, orient='vertical')
+        sbx = ttk.Scrollbar(self, orient='horizontal')
         sb.grid(row=0, column=2, sticky=tk.NS)
+        sbx.grid(row=1, column=1, sticky=tk.EW)
         sidebar = ttk.Frame(self, width=0)
         sidebar.grid(row=0, column=0, sticky=tk.NS, padx=5, pady=5)
         self.txt = TextWithSyntaxHighlighting(self)
         self.txt.grid(row=0, column=1, sticky=tk.NSEW)
         sb.config(command=self.txt.yview)
+        sbx.config(command=self.txt.xview)
         self.txt.config(yscrollcommand=sb.set)
+        self.txt.config(xscrollcommand=sbx.set)
         self.txt.bind("<<Selection>>", self.__on_selection_change)
 
         sidebar.rowconfigure(1, weight=1)
         self.ms = ModeSelector(sidebar,
-                               self.settings.get('Role', None),
-                               self.settings.get('Header', True),
                                self.settings.get('ADE', True))
         self.ms.bind("<<ModeChange>>", self.__on_mode_change)
         self.ms.bind("<<OptionChange>>", self.__on_option_change)
@@ -263,11 +271,9 @@ class MainWindow(ttk.Frame):
         self.act.set_copy_selected(False)
 
     def __on_mode_change(self, _):
-        self.settings['Role'] = self.ms.role.get()
         self.txt.delete('1.0', tk.END)
 
     def __on_option_change(self, _):
-        self.settings['Header'] = self.ms.with_header.get()
         self.settings['ADE'] = self.ms.with_ade.get()
         self.txt.delete('1.0', tk.END)
 
@@ -282,9 +288,11 @@ class MainWindow(ttk.Frame):
             self.act.set_copy_selected(False)
 
     def __import(self, _):
-        assert self.ms.output_type.get() in ('csv', 'ical')
+        assert self.ms.output_type.get() in ('csv', 'ical', 'efj')
         try:
-            if self.ms.output_type.get() == 'csv':
+            if self.ms.output_type.get() == 'efj':
+                self.__efj()
+            elif self.ms.output_type.get() == 'csv':
                 self.__csv()
             else:
                 self.__ical()
@@ -327,10 +335,8 @@ class MainWindow(ttk.Frame):
             self.txt.delete('1.0', tk.END)
             return
         crewlist_map = roster.crew_dict(lines)
-        fo = True if self.ms.role.get() == 'fo' else False
-        txt = csv(sectors, crewlist_map, fo)
-        if self.ms.with_header.get() is False:
-            txt = txt.split("\n", 1)[1]
+        # note: normalise newlines for Text widget - will restore on output
+        txt = csv(sectors, crewlist_map).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'csv')
 
@@ -351,6 +357,20 @@ class MainWindow(ttk.Frame):
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 
+    def __efj(self):
+        html = self.__roster_html()
+        if not html:
+            return
+        self.txt.delete('1.0', tk.END)
+        self.txt.insert(tk.END, "Working…", 'efj')
+        self.txt.update()
+        lines = roster.lines(html)
+        columns = roster.columns(lines)
+        sectors = roster.sectors(columns)
+        txt = efj(sectors, roster.crew_dict(lines))
+        self.txt.delete('1.0', tk.END)
+        self.txt.insert(tk.END, txt, 'efj')
+
     def __copy(self, _):
         self.clipboard_clear()
         if self.copy_mode == "all":
@@ -358,7 +378,8 @@ class MainWindow(ttk.Frame):
         else:
             start, end = self.txt.tag_ranges("sel")
         text = self.txt.get(start, end)
-        if self.ms.output_type == 'ical':  # ical requires DOS line endings
+        # ical and excel dialect csv need DOS style line endings
+        if self.ms.output_type in ('ical', 'csv'):
             text = text.replace("\n", "\r\n")
         self.clipboard_append(text)
         messagebox.showinfo('Copy', 'Text copied to clipboard.')
@@ -386,7 +407,8 @@ class MainWindow(ttk.Frame):
             self.settings[pathtype] = os.path.dirname(fn)
             with open(fn, "w", encoding="utf-8", newline='') as f:
                 text = self.txt.get('1.0', tk.END)
-                if output_type == 'ical':  # ical needs DOS style line endings
+                # ical and excel dialect csv need DOS style line endings
+                if output_type in ('ical', 'csv'):
                     text = text.replace("\n", "\r\n")
                 f.write(text)
                 messagebox.showinfo('Saved', 'Save complete.')
