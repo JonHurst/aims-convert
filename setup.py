@@ -20,7 +20,7 @@ setuptools.setup(
          "GNU General Public License v3 or later (GPLv3+)"),
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.10',
+    python_requires='>=3.11',
     install_requires=[
         "requests",
         "nightflight",
@@ -28,9 +28,7 @@ setuptools.setup(
     package_data={
     },
     entry_points={
-        "console_scripts": [
-            "aims = aims.cli:main",
-            "aimsgui = aims.gui:main"
-        ]
+        "console_scripts": ["aims = aims.cli:main"],
+        "gui_scripts" : ["aimsgui = aims.gui:main"]
     },
 )

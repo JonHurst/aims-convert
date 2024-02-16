@@ -8,5 +8,6 @@ source venv-shiv/bin/activate
 pip install shiv
 pip install wheel
 shiv -c aimsgui -o aimsgui.pyw -p "/usr/bin/env python3" $PROJ
+shiv -c aims -o aims.py -p "/usr/bin/env python3" $PROJ
 deactivate
 rm -r venv-shiv
