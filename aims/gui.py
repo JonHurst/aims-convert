@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+import ctypes
 
 import aims.roster as roster
 
@@ -425,6 +426,8 @@ class MainWindow(ttk.Frame):
 
 
 def main():
+    if "windll" in dir(ctypes):
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
     root = tk.Tk()
     root.title("aimsgui")
     root.option_add('*Dialog.msg.font', 'TkHeadingFont')
