@@ -10,7 +10,7 @@ import aims.roster as roster
 
 from aims.output import csv, ical, efj
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 SETTINGS_FILE = os.path.expanduser("~/.aimsgui")
 
@@ -430,7 +430,6 @@ def main():
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
     root = tk.Tk()
     root.title("aimsgui")
-    root.option_add('*Dialog.msg.font', 'TkHeadingFont')
     mw = MainWindow(root)
     mw.pack(fill=tk.BOTH, expand=True)
     root.mainloop()
