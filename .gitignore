@@ -3,3 +3,4 @@ aims.egg-info
 build
 aimsgui.pyw
 venv
+_build
