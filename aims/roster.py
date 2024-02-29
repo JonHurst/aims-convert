@@ -3,15 +3,15 @@ import sys
 import re
 import datetime as dt
 from html.parser import HTMLParser
-from typing import Union, NamedTuple, Optional, cast
+from typing import Union, NamedTuple, Optional, cast, TypeAlias
 import itertools as it
 
 
-Datum = Union[str, dt.datetime]
-DataBlock = tuple[Datum, ...]
-Column = tuple[dt.date, tuple[DataBlock, ...]]
-Line = tuple[str, ...]
-DayEvent = tuple[dt.date, str]
+Datum: TypeAlias = Union[str, dt.datetime]
+DataBlock: TypeAlias = tuple[Datum, ...]
+Column: TypeAlias = tuple[dt.date, tuple[DataBlock, ...]]
+Line: TypeAlias = tuple[str, ...]
+DayEvent: TypeAlias = tuple[dt.date, str]
 
 
 class Sector(NamedTuple):
@@ -83,15 +83,6 @@ class RosterParser(HTMLParser):
 
 
 def lines(roster: str) -> tuple[Line, ...]:
-    """Turn an AIMS roster into a tuple of Line objects.
-
-    An AIMS roster is fundamentally a very complex HTML table. Each Line object
-    represents a row of that table, and each string contained in the Line
-    object represents the contents of a cell.
-
-    :param roster: A string containing the HTML of an AIMS detailed roster.
-    :return: A tuple of Line objects representing the text of the roster.
-    """
     parser = RosterParser()
     parser.feed(roster)
     if (len(parser.output_list) < 10
@@ -102,24 +93,6 @@ def lines(roster: str) -> tuple[Line, ...]:
 
 
 def columns(lines: tuple[Line, ...]) -> tuple[Column, ...]:
-    """Extract the main table in the form of a tuple of Column objects.
-
-    When an AIMS roster is viewed in a browser, each column of the main table
-    represents a day. Groups of cells are separated vertically by blank cells,
-    with. Each group represents either a full day event, a sector, or, if a
-    sector straddles midnight, part of a sector. Standby and positioning duties
-    are considered to just be special forms of a sector.
-
-    The columns function converts each separate group into a DataBlock. Time
-    strings to datetime objects in the process. All the DataBlocks are then
-    formed into a tuple, and this is paired with the date of the column to form
-    a Column object. The Column objects structure is thus a very natural
-    representation of the column as viewed ia a browser.
-
-    :param lines: An AIMS roster in the form output from the lines function.
-    :return: A tuple of Column objects, one Column for each day covered by the
-        roster.
-    """
     mo = re.search(r"Period: (\d{2}/\d{2}/\d{4})", lines[1][0])
     if not mo:
         raise InputFileException
