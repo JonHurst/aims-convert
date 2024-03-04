@@ -14,7 +14,7 @@ Roster Processing Functions
    :data:`Line` object represents the contents of a table cell.
 
    :param roster: A string containing the HTML of an AIMS detailed roster.
-   :return: A tuple of Line objects representing the text of the roster.
+   :return: A tuple of :data:`Line` objects representing the text of the roster.
 
 
 .. function:: columns(lines: tuple[Line, ...]) -> tuple[Column, ...]
@@ -55,6 +55,12 @@ Roster Processing Functions
    beginning and end of the table (i.e. they have some of their data missing)
    are recorded with default values for the missing data. There are some cases
    where it is not possible to correctly identify missing data.
+
+   :param columns: A tuple of :data:`aims.roster.Column` objects representing
+                   the main table of the roster, as produced by
+                   :func:`aims.roster.columns`.
+   :return: A tuple of :class:`aims.roster.Sector` objects containing all the
+            sectors and quasi sectors extracted from the table.
 
 
 .. function:: duties(sectors: tuple[Sector, ...]) -> tuple[Duty, ...]

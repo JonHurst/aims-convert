@@ -5,7 +5,8 @@ Output Functions
 
 .. function:: efj(sectors: tuple[Sector, ...], crewdict: CrewDict) -> str
 
-   Transform to text with the electronic Flight Journal (eFJ) scheme.
+   Transform to text with the `electronic Flight Journal (eFJ) scheme
+   <https://hursts.org.uk/efjdocs/format.html#overview>`_.
 
    As well as converting the sector and crew information into the correct form,
    a night calculation is carried out (assuming that standard three letter codes
@@ -13,7 +14,7 @@ Output Functions
    of the aircraft is looked up.
 
    Where the aircraft is unknown (e.g. non easyJet pilot or a very recent
-   flight), the aircraft is output as ``?-????:???``.
+   flight), the aircraft is output as ``?‑????:???``.
 
    :param sectors: A tuple of :class:`aims.roster.Sector` objects, as output by
                    :func:`aims.roster.sectors`.
@@ -25,7 +26,7 @@ Output Functions
 
 .. function:: ical(sectors: tuple[Sector, ...], all_day_events: tuple[DayEvent, ...]) -> str
 
-   Transform to iCalendar format.
+   Transform to `iCalendar format  <https://icalendar.org>`_.
 
    :param sectors: A tuple of :class:`aims.roster.Sector` objects, as output by
                    :func:`aims.roster.sectors`.

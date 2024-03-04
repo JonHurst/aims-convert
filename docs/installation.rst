@@ -54,4 +54,4 @@ any other script.
 
 Uninstalling just requires deleting the file. Running the program creates a
 settings file named ``.aimsgui`` and a cache directory named ``.shiv`` that can
-be deleted at any time. These can be found in you home directory.
+be deleted at any time. These can be found in your home/user directory.

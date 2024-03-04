@@ -19,7 +19,7 @@ events such as days off.
 Use the "Load Roster" button to choose the roster to convert. The output will
 appear in a simple text editor on the right.
 
-Once you are happy with the output, either save it with the "Save" button of
+Once you are happy with the output, either save it with the "Save" button or
 copy it to the system clipboard with "Copy All". If text is selected in the text
 editor, this button changes to "Copy Selected" to allow parts of the output to
 be copied.

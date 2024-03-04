@@ -5,9 +5,9 @@ The following assumes that aims-convert has been installed via pip, pipx etc.
 and that this has added the ``aims`` entry point to somewhere that is included
 in your PATH environmental variable.
 
-The script is written as filter, i.e. it takes input from STDIN, writes to
-STDOUT and sends any error information to STDERR. Replace ``aims_roster`` with
-the file path of your downloaded roster.
+The script is written as a filter, i.e. it takes input from STDIN, writes to
+STDOUT and sends any error information to STDERR. In the examples below, replace
+``aims_roster`` with the file path of your downloaded roster.
 
 eFJ output
 ----------
