@@ -1,0 +1,107 @@
+:root {
+    --color-50: #f9f8fc;
+    --color-100: #f1eff8;
+    --color-200: #e6e2f2;
+    --color-300: #d2cbe7;
+    --color-400: #b5aad6;
+    --color-500: #9988c4;
+    --color-600: #806db0;
+    --color-700: #685693;
+    --color-800: #5b4c7d;
+    --color-900: #4b3e65;
+    --color-950: #302546;
+    --default-text-color: black;
+    --background: white;
+    --highlight: blue;
+    --border: 0.0625rem solid gray;
+    --border-radius: 0.5rem;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: var(--color-50);
+    color: var(--default-text-color);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: max-content auto;
+    height: calc(100dvh - 2rem);
+    padding: 1rem;
+    margin: 0;
+}
+
+.sidebar {
+    grid-column: 1;
+    padding-right: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+.editor {
+    grid-column: 2;
+    border: var(--border);
+    border-radius: var(--border);
+    font-size: 1.1rem;
+}
+
+.rbutton {
+    margin: 0.5rem 0;
+}
+
+button {
+    border: var(--border);
+    color: var(--default-text-color);
+    background-color: var(--background);
+    border-radius: var(--border-radius);
+    background-color: var(--color-100);
+    display: block;
+    padding: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    button:hover {
+        background-color: var(--color-700);
+        color: white;
+    }
+}
+
+.file {
+    display: none;
+}
+
+input {
+    accent-color: var(--highlight);
+}
+
+.hidden {
+    display: none;
+}
+
+fieldset {
+    border: var(--border);
+    border-radius: var(--border-radius);
+    width: 12rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+fieldset legend {
+    width: min-content;
+    white-space: nowrap;
+}
+
+@media (max-width: 35rem) {
+    fieldset {
+        width: 6rem;
+    }
+    .hide-narrow {
+        display: none;
+    }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+   <meta charset='UTF-8'/>
+    <title>AIMS web</title>
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+    <script src="script.js" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+  <body ondrop="dropHandler(event)" ondragover="dragoverHandler(event)">
+    <div class="grid">
+      <div class="sidebar">
+        <button id="help">Help</button>
+        <fieldset id="format">
+          <legend>Output<span class="hide-narrow"> Format</span></legend>
+          <div class="rbutton">
+            <input type="radio" id="efj" value="efj" name="format" checked />
+            <label for="efj">eFJ<span class="hide-narrow"> (Flight Journal)</span></label>
+          </div>
+          <div class="rbutton">
+            <input type="radio" id="ical" value="ical" name="format" />
+            <label for="ical">ICS/ICAL<span class="hide-narrow"> (Calendar)</span></label>
+          </div>
+          <div class="rbutton">
+            <input type="radio" id="csv" value="csv" name="format" />
+            <label for="csv">CSV<span class="hide-narrow"> (Spreadsheet)</span></label>
+          </div>
+        </fieldset>
+        <fieldset id="ical_options" class="hidden">
+          <legend>Options</legend>
+          <div class="cbutton">
+            <input type="checkbox" id="ade"  name="ade" checked />
+            <label for="ade">All day<span class="hide-narrow"> events</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Actions</legend>
+          <button id="load_roster">Load Roster</button>
+          <input class="file" id="input" type="file" />
+          <button id="save">Save</button>
+          <button id="copy">Copy All</button>
+        </fieldset>
+      </div>
+      <textarea id="output" class="editor" contenteditable="true"
+                spellcheck="false" wrap="off"
+                placeholder='Click "Load Roster" or drag and drop.'
+                ></textarea>
+    </div>
+  </body>
+</html>
