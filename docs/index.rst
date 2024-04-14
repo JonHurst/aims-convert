@@ -28,12 +28,3 @@ module to be used as a library.
    type_aliases
    data_structures
    exceptions
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
