@@ -4,3 +4,5 @@ build
 aimsgui.pyw
 venv
 _build
+aims_convert.egg-info
+dist
