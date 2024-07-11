@@ -34,6 +34,16 @@ Row = tuple[Data, ...]
 DATE, CODES, DETAILS, DSTART, TIMES, DEND, BHR, DHR, IND, CREW = range(1, 11)
 
 
+class RosterException(Exception):
+
+    def __str__(self):
+        return self.__doc__
+
+
+class InputFileException(RosterException):
+    "Input file does not appear to be an AIMS detailed roster."
+
+
 def extract(roster: str) -> tuple[Row, ...]:
     soup = BeautifulSoup(roster, "html5lib")
     retval = []

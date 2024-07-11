@@ -6,7 +6,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 import ctypes
 
-import aims.roster as roster
+import aims.roster_v2 as roster
 
 from aims.output import csv, ical, efj
 
@@ -328,16 +328,9 @@ class MainWindow(ttk.Frame):
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
 
-        lines = roster.lines(html)
-        sectors = tuple(X for X in roster.sectors(roster.columns(lines))
-                        if X.from_)
-        if not sectors:
-            messagebox.showinfo('Sectors', 'No relevant sectors found')
-            self.txt.delete('1.0', tk.END)
-            return
-        crewlist_map = roster.crew_dict(lines)
+        duties = roster.duties(roster.extract(html))
         # note: normalise newlines for Text widget - will restore on output
-        txt = csv(sectors, crewlist_map).replace("\r\n", "\n")
+        txt = csv(duties).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'csv')
 
@@ -345,16 +338,11 @@ class MainWindow(ttk.Frame):
         html = self.__roster_html()
         if not html:
             return
-        lines = roster.lines(html)
-        columns = roster.columns(lines)
-        sectors = roster.sectors(columns)
-        ade = roster.all_day_events(columns) if self.ms.with_ade.get() else ()
-        if not sectors:
-            self.txt.delete('1.0', tk.END)
-            messagebox.showinfo('Duties', 'No relevant sectors found')
-            return
+        data = roster.extract(html)
+        duties = roster.duties(data)
+        ade = roster.all_day_events(data) if self.ms.with_ade.get() else ()
         # note: normalise newlines for Text widget - will restore on output
-        txt = ical(sectors, ade).replace("\r\n", "\n")
+        txt = ical(duties, ade).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 
@@ -365,10 +353,8 @@ class MainWindow(ttk.Frame):
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Working…", 'efj')
         self.txt.update()
-        lines = roster.lines(html)
-        columns = roster.columns(lines)
-        sectors = roster.sectors(columns)
-        txt = efj(sectors, roster.crew_dict(lines))
+        duties = roster.duties(roster.extract(html))
+        txt = efj(duties)
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'efj')
 
