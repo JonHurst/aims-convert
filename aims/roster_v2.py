@@ -2,7 +2,7 @@
 import datetime as dt
 from typing import NamedTuple, Optional, TypeAlias
 from bs4 import BeautifulSoup
-import pprint
+import sys
 
 DayEvent: TypeAlias = tuple[dt.date, str]
 
@@ -66,7 +66,10 @@ def _convert_datestring(in_: str) -> dt.date:
 
 
 def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
-    time = dt.datetime.strptime(in_, "%H:%M").time()
+    if in_[-2:] == "⁺¹":
+        in_ = in_[:-2]
+        date = date + dt.timedelta(1)
+    time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
     return dt.datetime.combine(date, time)
 
 
@@ -83,10 +86,10 @@ def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     for c, code in enumerate(data[CODES]):
         name = code
         airports = data[DETAILS][c].split(" - ")
-        times = data[TIMES][c].split(" - ")
+        times = data[TIMES][c].split("/")[0].split(" - ")
         if len(airports) == 2:
             retval.append(
-                Sector(name, airports[0], airports[1],
+                Sector(name, airports[0].strip(), airports[1].strip(),
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date)))
         else:
@@ -115,10 +118,15 @@ def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
 
 
 def test():
-    roster = extract(
-        open("/home/jon/downloads/ScheduleReport.html").read())
-    pprint.pprint(all_day_events(roster))
-    pprint.pprint(duties(roster))
+    roster = extract(sys.stdin.read())
+    print("All Day Events\n==============")
+    for e in all_day_events(roster):
+        print(str(e[0]), e[1])
+    print("\nDuties\n======")
+    for d in duties(roster):
+        print(d.start, d.finish)
+        for s in d.sectors:
+            print("  ", s.name, s.off, s.from_ or "", s.to or "", s.on)
 
 
 if __name__ == "__main__":
