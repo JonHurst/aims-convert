@@ -15,19 +15,17 @@ class Sector(NamedTuple):
     on: dt.datetime
 
 
-class Duty(NamedTuple):
-    start: dt.datetime
-    finish: dt.datetime
-    sectors: tuple[Sector, ...]
-
-
 class CrewMember(NamedTuple):
     name: str
     role: str
 
 
-CrewList = tuple[CrewMember, ...]
-CrewDict = dict[tuple[dt.date, Optional[str]], CrewList]
+class Duty(NamedTuple):
+    start: dt.datetime
+    finish: dt.datetime
+    sectors: tuple[Sector, ...]
+    crew: tuple[CrewMember, ...]
+
 
 Data = tuple[str, ...]
 Row = tuple[Data, ...]
@@ -113,7 +111,19 @@ def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
             end = _convert_timestring(times[1], date)
-        retval.append(Duty(start, end, _extract_sectors(row, date)))
+        crew = []
+        for m in row[CREW]:
+            strings = m.split(" - ")
+            if len(strings) >= 3:
+                if strings[1] == "PAX":
+                    continue
+                crew.append(CrewMember(strings[-1], strings[0]))
+            else:
+                crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
+                                      crew[-1].role)
+        retval.append(Duty(start, end,
+                           _extract_sectors(row, date),
+                           tuple(crew)))
     return tuple(retval)
 
 
@@ -125,6 +135,8 @@ def test():
     print("\nDuties\n======")
     for d in duties(roster):
         print(d.start, d.finish)
+        for c in d.crew:
+            print("  ", c.role, ":", c.name)
         for s in d.sectors:
             print("  ", s.name, s.off, s.from_ or "", s.to or "", s.on)
 
