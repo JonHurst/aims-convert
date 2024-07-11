@@ -32,6 +32,9 @@ CrewDict = dict[tuple[dt.date, Optional[str]], CrewList]
 Data = tuple[str, ...]
 Row = tuple[Data, ...]
 
+# column indices
+DATE, CODES, DETAILS, DSTART, TIMES, DEND, BHR, DHR, IND, CREW = range(1, 11)
+
 
 def extract(roster: str) -> tuple[Row, ...]:
     soup = BeautifulSoup(roster, "html5lib")
@@ -70,26 +73,52 @@ def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
 def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
     retval = []
     for row in data:
-        if not row[4]:
-            retval.append((_convert_datestring(row[1][0]), row[2][0]))
+        if not row[TIMES]:
+            retval.append((_convert_datestring(row[DATE][0]), row[CODES][0]))
+    return tuple(retval)
+
+
+def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
+    retval = []
+    for c, code in enumerate(data[CODES]):
+        name = code
+        airports = data[DETAILS][c].split(" - ")
+        times = data[TIMES][c].split(" - ")
+        if len(airports) == 2:
+            retval.append(
+                Sector(name, airports[0], airports[1],
+                       _convert_timestring(times[0], date),
+                       _convert_timestring(times[1], date)))
+        else:
+            retval.append(
+                Sector(name, None, None,
+                       _convert_timestring(times[0], date),
+                       _convert_timestring(times[1], date)))
     return tuple(retval)
 
 
 def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
     retval = []
     for row in data:
-        if not row[4]:
+        if not row[TIMES]:
             continue
-        date = _convert_datestring(row[1][0])
-        start = _convert_timestring(row[4][0], date)
-        end = _convert_timestring(row[6][0], date)
-        retval.append(Duty(start, end, ()))
+        date = _convert_datestring(row[DATE][0])
+        if row[DSTART]:
+            start = _convert_timestring(row[DSTART][0], date)
+            end = _convert_timestring(row[DEND][0], date)
+        else:
+            times = row[TIMES][0].split(" - ")
+            start = _convert_timestring(times[0], date)
+            end = _convert_timestring(times[1], date)
+        retval.append(Duty(start, end, _extract_sectors(row, date)))
     return tuple(retval)
 
 
 def test():
-    roster = open("/home/jon/downloads/ScheduleReport.html").read()
-    pprint.pprint(duties(extract(roster)))
+    roster = extract(
+        open("/home/jon/downloads/ScheduleReport.html").read())
+    pprint.pprint(all_day_events(roster))
+    pprint.pprint(duties(roster))
 
 
 if __name__ == "__main__":
