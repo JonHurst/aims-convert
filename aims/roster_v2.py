@@ -58,8 +58,8 @@ def extract(roster: str) -> tuple[Row, ...]:
     return tuple(retval[table_start:table_end])
 
 
-def _convert_datestring(_in: str) -> dt.date:
-    return dt.datetime.strptime(_in.split()[0], "%d/%m/%Y").date()
+def _convert_datestring(in_: str) -> dt.date:
+    return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
 
 
 def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
