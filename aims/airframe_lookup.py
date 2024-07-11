@@ -1,8 +1,9 @@
 import requests
 from aims.roster_v2 import Duty, Sector
 
+
 def sector_id(sector: Sector) -> str:
-    return f'{sector.off:%Y%m%dT%H%M}F{sector.name.split()[0]}'
+    return f'{sector.off:%Y%m%dT%H%M}F{sector.name}'
 
 
 def airframes(duties: tuple[Duty, ...]) -> dict[str, tuple[str, str]]:

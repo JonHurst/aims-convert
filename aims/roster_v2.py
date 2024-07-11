@@ -82,7 +82,7 @@ def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
 def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     retval = []
     for c, code in enumerate(data[CODES]):
-        name = code
+        name = code.split()[0]
         airports = data[DETAILS][c].split(" - ")
         times = data[TIMES][c].split("/")[0].split(" - ")
         if len(airports) == 2:
