@@ -19,9 +19,6 @@ def _args():
 
 def main() -> int:
     args = _args()
-    # lines = roster.lines(sys.stdin.read())
-    # columns = roster.columns(lines)
-    # sectors = roster.sectors(columns)
     data = roster.extract(sys.stdin.read())
     duties = roster.duties(data)
     if args.format == "roster":
@@ -30,9 +27,9 @@ def main() -> int:
         print(output.efj(duties))
     elif args.format == "csv":
         print(output.csv(duties))
-    # elif args.format == "ical":
-    #     ade = roster.all_day_events(columns) if args.ade else ()
-    #     print(output.ical(sectors, ade))
+    elif args.format == "ical":
+        ade = roster.all_day_events(data) if args.ade else ()
+        print(output.ical(duties, ade))
     return 0
 
 
