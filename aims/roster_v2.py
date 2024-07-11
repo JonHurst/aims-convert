@@ -62,6 +62,11 @@ def _convert_datestring(in_: str) -> dt.date:
     return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
 
 
+def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
+    time = dt.datetime.strptime(in_, "%H:%M").time()
+    return dt.datetime.combine(date, time)
+
+
 def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
     retval = []
     for row in data:
@@ -70,9 +75,21 @@ def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
     return tuple(retval)
 
 
+def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
+    retval = []
+    for row in data:
+        if not row[4]:
+            continue
+        date = _convert_datestring(row[1][0])
+        start = _convert_timestring(row[4][0], date)
+        end = _convert_timestring(row[6][0], date)
+        retval.append(Duty(start, end, ()))
+    return tuple(retval)
+
+
 def test():
     roster = open("/home/jon/downloads/ScheduleReport.html").read()
-    pprint.pprint(all_day_events(extract(roster)))
+    pprint.pprint(duties(extract(roster)))
 
 
 if __name__ == "__main__":
