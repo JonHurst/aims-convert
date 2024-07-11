@@ -25,6 +25,8 @@ setuptools.setup(
     install_requires=[
         "requests",
         "nightflight",
+        "bs4",
+        "html5lib"
     ],
     package_data={
     },

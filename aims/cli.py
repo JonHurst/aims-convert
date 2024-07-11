@@ -3,7 +3,7 @@
 import sys
 import argparse
 
-import aims.roster as roster
+import aims.roster_v2 as roster
 import aims.output as output
 
 
@@ -19,22 +19,22 @@ def _args():
 
 def main() -> int:
     args = _args()
-    lines = roster.lines(sys.stdin.read())
-    columns = roster.columns(lines)
-    sectors = roster.sectors(columns)
+    # lines = roster.lines(sys.stdin.read())
+    # columns = roster.columns(lines)
+    # sectors = roster.sectors(columns)
+    data = roster.extract(sys.stdin.read())
+    duties = roster.duties(data)
     if args.format == "roster":
-        print(output.roster(sectors))
+        print(output.roster(duties))
     elif args.format == "efj":
-        print(output.efj(
-            sectors,
-            roster.crew_dict(lines)))
-    elif args.format == "csv":
-        print(output.csv(
-            sectors,
-            roster.crew_dict(lines)))
-    elif args.format == "ical":
-        ade = roster.all_day_events(columns) if args.ade else ()
-        print(output.ical(sectors, ade))
+        print(output.efj(duties))
+    # elif args.format == "csv":
+    #     print(output.csv(
+    #         sectors,
+    #         roster.crew_dict(lines)))
+    # elif args.format == "ical":
+    #     ade = roster.all_day_events(columns) if args.ade else ()
+    #     print(output.ical(sectors, ade))
     return 0
 
 
