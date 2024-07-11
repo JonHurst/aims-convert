@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 
-from typing import Dict
 from zoneinfo import ZoneInfo as Z
 import io
 import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster_v2 import Duty, Sector, CrewMember, DayEvent
+from aims.roster_v2 import Duty, Sector, CrewMember  # , DayEvent
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 from aims.airframe_lookup import airframes, sector_id
@@ -85,11 +84,8 @@ def roster(duties: tuple[Duty, ...]) -> str:
 
 
 def efj(duties: tuple[Duty, ...]) -> str:
+    regntype = airframes(duties)
     output = []
-    sectors = []
-    for duty in duties:
-        sectors += duty.sectors
-    regntype = airframes(sectors)
     for duty in duties:
         output.append(f"{duty.start:%Y-%m-%d}")
         comment = ""
@@ -126,46 +122,42 @@ def efj(duties: tuple[Duty, ...]) -> str:
     return "\n".join(output)
 
 
-# def csv(
-#         sectors: tuple[Sector, ...],
-#         crewdict: CrewDict
-# ) -> str:
-#     regntype = airframes(sectors)
-#     output = io.StringIO(newline='')
-#     fieldnames = ['Off Blocks', 'On Blocks', 'Duration', 'Night', 'Origin',
-#                   'Destination', 'Registration', 'Type', 'Captain', 'Crew']
-#     writer = libcsv.DictWriter(
-#         output,
-#         fieldnames=fieldnames,
-#         extrasaction='ignore')
-#     writer.writeheader()
-#     for sector in sectors:
-#         if not sector.from_:
-#             continue
-#         out_dict = {
-#             'Off Blocks': sector.off,
-#             'On Blocks': sector.on,
-#             'Duration': (sector.on - sector.off) // dt.timedelta(minutes=1),
-#             'Night': _night(sector)[0],
-#             'Origin': sector.from_,
-#             'Destination': sector.to
-#         }
-#         reg, type_ = regntype.get(sector_id(sector), ("", ""))
-#         out_dict['Registration'] = reg
-#         out_dict['Type'] = type_
-#         date = sector.off.date()
-#         crew = (list(crewdict.get((date, sector.name), tuple())) +
-#                 list(crewdict.get((date, None), tuple())))
-#         crew = [CrewMember(clean_name(X[0]), X[1]) for X in crew]
-#         captains = [X.name for X in crew if X.role == "CP"]
-#         if not captains:
-#             out_dict['Captain'] = 'Self'
-#         else:
-#             out_dict['Captain'] = ', '.join(captains)
-#         out_dict['Crew'] = "; ".join(f"{X.role}:{X.name} " for X in crew)
-#         writer.writerow(out_dict)
-#     output.seek(0)
-#     return output.read()
+def csv(duties: tuple[Duty, ...]) -> str:
+    regntype = airframes(duties)
+    output = io.StringIO(newline='')
+    fieldnames = ['Off Blocks', 'On Blocks', 'Duration', 'Night', 'Origin',
+                  'Destination', 'Registration', 'Type', 'Captain', 'Crew']
+    writer = libcsv.DictWriter(
+        output,
+        fieldnames=fieldnames,
+        extrasaction='ignore')
+    writer.writeheader()
+    for duty in duties:
+        crew = [CrewMember(clean_name(X[0]), X[1]) for X in duty.crew]
+        for sector in duty.sectors:
+            if not sector.from_:
+                continue
+            out_dict = {
+                'Off Blocks': sector.off,
+                'On Blocks': sector.on,
+                'Duration':
+                (sector.on - sector.off) // dt.timedelta(minutes=1),
+                'Night': _night(sector)[0],
+                'Origin': sector.from_,
+                'Destination': sector.to
+            }
+            reg, type_ = regntype.get(sector_id(sector), ("", ""))
+            out_dict['Registration'] = reg
+            out_dict['Type'] = type_
+            captains = [X.name for X in crew if X.role == "CP"]
+            if not captains:
+                out_dict['Captain'] = 'Self'
+            else:
+                out_dict['Captain'] = ', '.join(captains)
+            out_dict['Crew'] = "; ".join(f"{X.role}:{X.name} " for X in crew)
+            writer.writerow(out_dict)
+    output.seek(0)
+    return output.read()
 
 
 # vcalendar = """\

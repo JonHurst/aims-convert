@@ -28,10 +28,8 @@ def main() -> int:
         print(output.roster(duties))
     elif args.format == "efj":
         print(output.efj(duties))
-    # elif args.format == "csv":
-    #     print(output.csv(
-    #         sectors,
-    #         roster.crew_dict(lines)))
+    elif args.format == "csv":
+        print(output.csv(duties))
     # elif args.format == "ical":
     #     ade = roster.all_day_events(columns) if args.ade else ()
     #     print(output.ical(sectors, ade))
