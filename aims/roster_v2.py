@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 import datetime as dt
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, TypeAlias
 from bs4 import BeautifulSoup
 import pprint
+
+DayEvent: TypeAlias = tuple[dt.date, str]
 
 
 class Sector(NamedTuple):
@@ -56,9 +58,21 @@ def extract(roster: str) -> tuple[Row, ...]:
     return tuple(retval[table_start:table_end])
 
 
+def _convert_datestring(_in: str) -> dt.date:
+    return dt.datetime.strptime(_in.split()[0], "%d/%m/%Y").date()
+
+
+def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
+    retval = []
+    for row in data:
+        if not row[4]:
+            retval.append((_convert_datestring(row[1][0]), row[2][0]))
+    return tuple(retval)
+
+
 def test():
     roster = open("/home/jon/downloads/ScheduleReport.html").read()
-    pprint.pprint(extract(roster))
+    pprint.pprint(all_day_events(extract(roster)))
 
 
 if __name__ == "__main__":
