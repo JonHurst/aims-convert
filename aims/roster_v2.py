@@ -13,6 +13,7 @@ class Sector(NamedTuple):
     to: Optional[str]
     off: dt.datetime
     on: dt.datetime
+    type_: Optional[str]
 
 
 class CrewMember(NamedTuple):
@@ -92,19 +93,23 @@ def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
 def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     retval = []
     for c, code in enumerate(data[CODES]):
-        name = code.split()[0]
+        code_split = code.split()
+        name = code_split[0]
+        type_ = None
+        if len(code_split) == 2 and code_split[1][0] == "[":
+            type_ = code_split[1][1:-1]
         airports = data[DETAILS][c].split(" - ")
         times = data[TIMES][c].split("/")[0].split(" - ")
         if len(airports) == 2:
             retval.append(
                 Sector(name, airports[0].strip(), airports[1].strip(),
                        _convert_timestring(times[0], date),
-                       _convert_timestring(times[1], date)))
+                       _convert_timestring(times[1], date), type_))
         else:
             retval.append(
                 Sector(name, None, None,
                        _convert_timestring(times[0], date),
-                       _convert_timestring(times[1], date)))
+                       _convert_timestring(times[1], date), None))
     return tuple(retval)
 
 

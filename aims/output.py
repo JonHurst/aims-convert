@@ -9,7 +9,6 @@ import re
 from aims.roster_v2 import Duty, Sector, CrewMember, DayEvent
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
-from aims.airframe_lookup import airframes, sector_id
 
 
 def clean_name(name: str) -> str:
@@ -84,7 +83,6 @@ def roster(duties: tuple[Duty, ...]) -> str:
 
 
 def efj(duties: tuple[Duty, ...]) -> str:
-    regntype = airframes(duties)
     output = []
     for duty in duties:
         output.append(f"{duty.start:%Y-%m-%d}")
@@ -95,17 +93,17 @@ def efj(duties: tuple[Duty, ...]) -> str:
         if duty.crew:
             crew = [f"{X.role}:{clean_name(X.name)}" for X in duty.crew]
             output.append(f"{{ {', '.join(crew)} }}")
-        last_reg = None
+        for sector in duty.sectors:
+            if (sector.from_ and sector.from_[0] != "*"
+                    and sector.name != "ADTY"):
+                type_ = sector.type_ or "???"
+                output.append(f"?-????:{type_}")
+                break
         for sector in duty.sectors:
             if sector.name == "ADTY":
                 continue
             if not sector.from_ or sector.from_[0] == "*":
                 continue
-            reg, type_ = regntype.get(
-                sector_id(sector), ("?-????", "???"))
-            if reg != last_reg:
-                output.append(f"{reg}:{type_}")
-                last_reg = reg
             # sector
             duration = (sector.on - sector.off).total_seconds() // 60
             night_duration, night_landing = _night(sector)
@@ -123,7 +121,6 @@ def efj(duties: tuple[Duty, ...]) -> str:
 
 
 def csv(duties: tuple[Duty, ...]) -> str:
-    regntype = airframes(duties)
     output = io.StringIO(newline='')
     fieldnames = ['Off Blocks', 'On Blocks', 'Duration', 'Night', 'Origin',
                   'Destination', 'Registration', 'Type', 'Captain', 'Crew']
@@ -146,9 +143,8 @@ def csv(duties: tuple[Duty, ...]) -> str:
                 'Origin': sector.from_,
                 'Destination': sector.to
             }
-            reg, type_ = regntype.get(sector_id(sector), ("", ""))
-            out_dict['Registration'] = reg
-            out_dict['Type'] = type_
+            out_dict['Registration'] = "?-????"
+            out_dict['Type'] = sector.type_ or "???"
             captains = [X.name for X in crew if X.role == "CP"]
             if not captains:
                 out_dict['Captain'] = 'Self'
@@ -192,7 +188,7 @@ END:VEVENT"""
 ical_datetime = "{:%Y%m%dT%H%M%SZ}"
 
 
-def _build_dict(duty: Duty, regntype) -> dict[str, str]:
+def _build_dict(duty: Duty) -> dict[str, str]:
     event = {}
     event["start"] = ical_datetime.format(duty.start)
     event["end"] = ical_datetime.format(duty.finish)
@@ -211,14 +207,11 @@ def _build_dict(duty: Duty, regntype) -> dict[str, str]:
                 airports.append(sector.to)
             off, on = sector.off, sector.on
             from_to = ""
-            reg, type_ = regntype.get(sector_id(sector), ("", ""))
-            type_ = ":" + type_ if type_ else ""
             if sector.from_ and sector.to:
                 from_to = f"{sector.from_}/{sector.to} "
             sector_strings.append(
                 f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
-                f"{from_to}"
-                f"{reg}{type_}")
+                f"{from_to}")
     if from_:
         airports = [from_] + airports
     event["sectors"] = "DESCRIPTION:{}\r\n".format(
@@ -233,9 +226,8 @@ def _build_dict(duty: Duty, regntype) -> dict[str, str]:
 def ical(duties: tuple[Duty, ...], all_day_events: tuple[DayEvent, ...]
          ) -> str:
     events = []
-    regntype = airframes(duties)
     for duty in duties:
-        d = _build_dict(duty, regntype)
+        d = _build_dict(duty)
         events.append(vevent.format(**d))
     for ade in all_day_events:
         uid = "{}{}@HURSTS.ORG.UK".format(
