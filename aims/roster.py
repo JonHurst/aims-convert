@@ -116,8 +116,14 @@ def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
-def duties(html: str) -> tuple[Duty, ...]:
+def parse(html: str) -> tuple[Duty, ...]:
     data = _extract(html)
+    # import pprint
+    # pprint.pprint(data)
+    return _duties(data)
+
+
+def _duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
     retval = []
     for row in data:
         date = _convert_datestring(row[DATE][0])
@@ -155,7 +161,7 @@ def duties(html: str) -> tuple[Duty, ...]:
 
 
 def test():
-    for d in duties(sys.stdin.read()):
+    for d in parse(sys.stdin.read()):
         if not d.finish:
             print("ADE: ", d.start, d.code)
             continue

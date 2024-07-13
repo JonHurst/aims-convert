@@ -19,7 +19,7 @@ def _args():
 
 def main() -> int:
     args = _args()
-    duties = roster.duties(sys.stdin.read())
+    duties = roster.parse(sys.stdin.read())
     if args.format == "roster":
         print(output.roster(duties))
     elif args.format == "efj":
