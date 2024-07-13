@@ -201,10 +201,10 @@ def _build_dict(duty: Duty) -> dict[str, str]:
         for sector in duty.sectors:
             if not from_ and sector.from_:
                 from_ = sector.from_
-            if not sector.to:
-                airports.append(sector.name)
-            elif sector.from_ and sector.from_[0] == "*":
+            if sector.position:
                 airports.append("[psn]")
+            elif sector.quasi:
+                airports.append(f"[{sector.name}]")
             if sector.to:
                 airports.append(sector.to)
             off, on = sector.off, sector.on
