@@ -29,6 +29,7 @@ setuptools.setup(
         "html5lib"
     ],
     package_data={
+        "aims": ['py.typed'],
     },
     entry_points={
         "console_scripts": ["aims = aims.cli:main"],
