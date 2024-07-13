@@ -134,7 +134,7 @@ def csv(duties: tuple[Duty, ...]) -> str:
     for duty in duties:
         crew = [CrewMember(clean_name(X[0]), X[1]) for X in duty.crew]
         for sector in duty.sectors:
-            if not sector.from_:
+            if sector.position or sector.quasi:
                 continue
             out_dict = {
                 'Off Blocks': sector.off,
@@ -145,8 +145,8 @@ def csv(duties: tuple[Duty, ...]) -> str:
                 'Origin': sector.from_,
                 'Destination': sector.to
             }
-            out_dict['Registration'] = "?-????"
-            out_dict['Type'] = sector.type_ or "???"
+            out_dict['Registration'] = sector.reg or ""
+            out_dict['Type'] = sector.type_ or ""
             captains = [X.name for X in crew if X.role == "CP"]
             if not captains:
                 out_dict['Captain'] = 'Self'
