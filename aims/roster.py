@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 import datetime as dt
-from typing import NamedTuple, Optional, TypeAlias
+from typing import NamedTuple, Optional
 from bs4 import BeautifulSoup  # type: ignore
 import sys
-
-DayEvent: TypeAlias = tuple[dt.date, str]
 
 
 class Sector(NamedTuple):
