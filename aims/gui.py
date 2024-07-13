@@ -328,7 +328,7 @@ class MainWindow(ttk.Frame):
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
 
-        duties = roster.duties(roster.extract(html))
+        duties = roster.duties(html)
         # note: normalise newlines for Text widget - will restore on output
         txt = csv(duties).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
@@ -338,11 +338,9 @@ class MainWindow(ttk.Frame):
         html = self.__roster_html()
         if not html:
             return
-        data = roster.extract(html)
-        duties = roster.duties(data)
-        ade = roster.all_day_events(data) if self.ms.with_ade.get() else ()
+        duties = roster.duties(html)
         # note: normalise newlines for Text widget - will restore on output
-        txt = ical(duties, ade).replace("\r\n", "\n")
+        txt = ical(duties).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 
@@ -353,7 +351,7 @@ class MainWindow(ttk.Frame):
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Working…", 'efj')
         self.txt.update()
-        duties = roster.duties(roster.extract(html))
+        duties = roster.duties(html)
         txt = efj(duties)
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'efj')
