@@ -44,7 +44,7 @@ class RosterException(Exception):
 
 
 class InputFileException(RosterException):
-    "Input file does not appear to be an AIMS detailed roster."
+    "Input file does not appear to be an AIMS roster."
 
 
 def _extract(roster: str) -> tuple[Row, ...]:
