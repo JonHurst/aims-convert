@@ -6,7 +6,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 import ctypes
 
-import aims.roster_v2 as roster
+import aims.roster as roster
 
 from aims.output import csv, ical, efj
 

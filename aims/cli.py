@@ -3,7 +3,7 @@
 import sys
 import argparse
 
-import aims.roster_v2 as roster
+import aims.roster as roster
 import aims.output as output
 
 
