@@ -66,15 +66,16 @@ def roster(duties: tuple[Duty, ...]) -> str:
         block = 0
         for sector in duty.sectors:
             if not from_ and sector.from_:
-                from_ = sector.from_.strip("*")
-            if sector.from_ and sector.from_[0] == "*":
+                from_ = sector.from_
+            if sector.position:
                 airports.append("[psn]")
+            elif sector.quasi:
+                airports.append(f"[{sector.name}]")
             if sector.to:
                 airports.append(sector.to)
                 off, on = sector.off, sector.on
-                block += int((on - off).total_seconds()) // 60
-            else:
-                airports.append(sector.name)
+                if not sector.quasi and not sector.position:
+                    block += int((on - off).total_seconds()) // 60
         if from_:
             airports = [from_] + airports
         duration_str = f"{duration // 60}:{duration % 60:02d}"
