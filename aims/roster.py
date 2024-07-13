@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import datetime as dt
 from typing import NamedTuple, Optional, TypeAlias
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore
 import sys
 
 DayEvent: TypeAlias = tuple[dt.date, str]
