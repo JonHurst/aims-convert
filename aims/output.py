@@ -88,26 +88,25 @@ def roster(duties: tuple[Duty, ...]) -> str:
 def efj(duties: tuple[Duty, ...]) -> str:
     output = []
     for duty in duties:
+        if not duty.finish:  # all day event
+            continue
         output.append(f"{duty.start:%Y-%m-%d}")
         comment = ""
-        if (len(duty.sectors) == 1 and not duty.sectors[0].from_):
+        if (len(duty.sectors) == 1 and duty.sectors[0].quasi):
             comment = f" #{duty.sectors[0].name}"
         output.append(f"{duty.start:%H%M}/{duty.finish:%H%M}{comment}")
         if duty.crew:
             crew = [f"{X.role}:{clean_name(X.name)}" for X in duty.crew]
             output.append(f"{{ {', '.join(crew)} }}")
+        last_airframe = None
         for sector in duty.sectors:
-            if (sector.from_ and sector.from_[0] != "*"
-                    and sector.name != "ADTY"):
-                type_ = sector.type_ or "???"
-                output.append(f"?-????:{type_}")
-                break
-        for sector in duty.sectors:
-            if sector.name == "ADTY":
+            if sector.position or sector.quasi:
                 continue
-            if not sector.from_ or sector.from_[0] == "*":
-                continue
-            # sector
+            reg = sector.reg or "?-????"
+            type_ = sector.type_ or "???"
+            if last_airframe != (reg, type_):
+                output.append(f"{reg}:{type_}")
+                last_airframe = (reg, type_)
             duration = (sector.on - sector.off).total_seconds() // 60
             night_duration, night_landing = _night(sector)
             night_flag = ""
