@@ -6,7 +6,7 @@ import csv as libcsv
 import datetime as dt
 import re
 
-from aims.roster_v2 import Duty, Sector, CrewMember, DayEvent
+from aims.roster_v2 import Duty, Sector, CrewMember
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
@@ -56,6 +56,8 @@ def roster(duties: tuple[Duty, ...]) -> str:
     LT = Z("Europe/London")
     output = []
     for duty in duties:
+        if not duty.finish:
+            continue
         start, end = [X.replace(tzinfo=UTC).astimezone(LT)
                       for X in (duty.start, duty.finish)]
         duration = int((end - start).total_seconds()) // 60
@@ -223,20 +225,20 @@ def _build_dict(duty: Duty) -> dict[str, str]:
     return event
 
 
-def ical(duties: tuple[Duty, ...], all_day_events: tuple[DayEvent, ...]
-         ) -> str:
+def ical(duties: tuple[Duty, ...]) -> str:
     events = []
     for duty in duties:
-        d = _build_dict(duty)
-        events.append(vevent.format(**d))
-    for ade in all_day_events:
-        uid = "{}{}@HURSTS.ORG.UK".format(
-            ade[0].isoformat(), ade[1])
-        modified = ical_datetime.format(dt.datetime.utcnow())
-        events.append(advevent.format(
-            day=ade[0],
-            ev=ade[1],
-            modified=modified,
-            uid=uid
-        ))
+        if duty.finish:
+            d = _build_dict(duty)
+            events.append(vevent.format(**d))
+        else:
+            date = duty.start.date()
+            uid = "{}{}@HURSTS.ORG.UK".format(
+                date.isoformat(), duty.code)
+            modified = ical_datetime.format(dt.datetime.utcnow())
+            events.append(advevent.format(
+                day=date,
+                ev=duty.code,
+                modified=modified,
+                uid=uid))
     return vcalendar.format("\r\n".join(events))

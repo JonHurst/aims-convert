@@ -9,11 +9,14 @@ DayEvent: TypeAlias = tuple[dt.date, str]
 
 class Sector(NamedTuple):
     name: str
+    reg: Optional[str]
+    type_: Optional[str]
     from_: Optional[str]
     to: Optional[str]
     off: dt.datetime
     on: dt.datetime
-    type_: Optional[str]
+    quasi: bool
+    position: bool
 
 
 class CrewMember(NamedTuple):
@@ -22,8 +25,9 @@ class CrewMember(NamedTuple):
 
 
 class Duty(NamedTuple):
+    code: Optional[str]  # only all day event has code
     start: dt.datetime
-    finish: dt.datetime
+    finish: Optional[dt.datetime]  # all day event has None
     sectors: tuple[Sector, ...]
     crew: tuple[CrewMember, ...]
 
@@ -45,7 +49,7 @@ class InputFileException(RosterException):
     "Input file does not appear to be an AIMS detailed roster."
 
 
-def extract(roster: str) -> tuple[Row, ...]:
+def _extract(roster: str) -> tuple[Row, ...]:
     soup = BeautifulSoup(roster, "html5lib")
     retval = []
     for row in soup.find_all("tr"):
@@ -82,14 +86,6 @@ def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
     return dt.datetime.combine(date, time)
 
 
-def all_day_events(data: tuple[Row, ...]) -> tuple[DayEvent, ...]:
-    retval = []
-    for row in data:
-        if not row[TIMES]:
-            retval.append((_convert_datestring(row[DATE][0]), row[CODES][0]))
-    return tuple(retval)
-
-
 def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     retval = []
     for c, code in enumerate(data[CODES]):
@@ -98,31 +94,47 @@ def _extract_sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
         type_ = None
         if len(code_split) == 2 and code_split[1][0] == "[":
             type_ = code_split[1][1:-1]
-        airports = data[DETAILS][c].split(" - ")
+        airports = [X.strip() for X in data[DETAILS][c].split(" - ")]
         times = data[TIMES][c].split("/")[0].split(" - ")
-        if len(airports) == 2:
+        if len(airports) == 2:  # Not an all day event or unused standby
+            position = False
+            if airports[0][0] == "*":  # Either ground or air positioning
+                airports[0] = airports[0][1:]
+                position = True
+            quasi = not type_  # If no type in code, assume quasi sector
             retval.append(
-                Sector(name, airports[0].strip(), airports[1].strip(),
+                Sector(name, None, type_, airports[0], airports[1],
                        _convert_timestring(times[0], date),
-                       _convert_timestring(times[1], date), type_))
+                       _convert_timestring(times[1], date),
+                       quasi, position))
         else:
             retval.append(
-                Sector(name, None, None,
+                Sector(name, None, None, None, None,
                        _convert_timestring(times[0], date),
-                       _convert_timestring(times[1], date), None))
+                       _convert_timestring(times[1], date),
+                       True, False))
     return tuple(retval)
 
 
-def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
+def duties(html: str) -> tuple[Duty, ...]:
+    data = _extract(html)
     retval = []
     for row in data:
-        if not row[TIMES]:
-            continue
         date = _convert_datestring(row[DATE][0])
+        # if there are no times, it is an all day event
+        if not row[TIMES]:
+            retval.append(
+                Duty(row[CODES][0],
+                     dt.datetime.combine(date, dt.time()),
+                     None, (), ()))
+            continue
+        # If there duty start/finish does not exist, take the times from
+        # the only sector. Details will be recorded in Duty.sectors.
         if row[DSTART]:
             start = _convert_timestring(row[DSTART][0], date)
             end = _convert_timestring(row[DEND][0], date)
         else:
+            assert len(row[TIMES]) == 1
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
             end = _convert_timestring(times[1], date)
@@ -136,24 +148,23 @@ def duties(data: tuple[Row, ...]) -> tuple[Duty, ...]:
             else:
                 crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
                                       crew[-1].role)
-        retval.append(Duty(start, end,
+        retval.append(Duty(None, start, end,
                            _extract_sectors(row, date),
                            tuple(crew)))
     return tuple(retval)
 
 
 def test():
-    roster = extract(sys.stdin.read())
-    print("All Day Events\n==============")
-    for e in all_day_events(roster):
-        print(str(e[0]), e[1])
-    print("\nDuties\n======")
-    for d in duties(roster):
-        print(d.start, d.finish)
+    for d in duties(sys.stdin.read()):
+        if not d.finish:
+            print("ADE: ", d.start, d.code)
+            continue
+        print("DUTY: ", d.start, d.finish)
         for c in d.crew:
             print("  ", c.role, ":", c.name)
         for s in d.sectors:
-            print("  ", s.name, s.off, s.from_ or "", s.to or "", s.on)
+            print("  ", s.name, s.off, s.from_ or "", s.to or "", s.on,
+                  "Q" if s.quasi else "", "P" if s.position else "")
 
 
 if __name__ == "__main__":
