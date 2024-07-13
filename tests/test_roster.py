@@ -165,3 +165,39 @@ class Test_duties(unittest.TestCase):
                             quasi=False, position=False)),
                  crew=()), )
         self.assertEqual(roster._duties(src), expected)
+
+    def test_over_midnight(self):
+        src = (((), ('25/06/2023 Sun',),
+                ('239 [320]', '240 [320]', '2873 [320]', '2874 [320]'),
+                ('BRS  - NCL', 'NCL  - BRS', 'BRS  - FAO', 'FAO  - BRS'),
+                ('14:00',),
+                ('A15:24 - A16:19', 'A17:27 - A18:41',
+                 'A19:21 - A21:56', 'A22:33 - A00:57⁺¹/00:24'),
+                ('01:27⁺¹',), ('07:08',), ('11:27',), ('M',),
+                crew, ()), )
+        expected = (
+            Duty(code=None,
+                 start=datetime.datetime(2023, 6, 25, 14, 0),
+                 finish=datetime.datetime(2023, 6, 26, 1, 27),
+                 sectors=(
+                     Sector(name='239', reg=None, type_='320',
+                            from_='BRS', to='NCL',
+                            off=datetime.datetime(2023, 6, 25, 15, 24),
+                            on=datetime.datetime(2023, 6, 25, 16, 19),
+                            quasi=False, position=False),
+                     Sector(name='240', reg=None, type_='320',
+                            from_='NCL', to='BRS',
+                            off=datetime.datetime(2023, 6, 25, 17, 27),
+                            on=datetime.datetime(2023, 6, 25, 18, 41),
+                            quasi=False, position=False),
+                     Sector(name='2873', reg=None, type_='320',
+                            from_='BRS', to='FAO',
+                            off=datetime.datetime(2023, 6, 25, 19, 21),
+                            on=datetime.datetime(2023, 6, 25, 21, 56),
+                            quasi=False, position=False),
+                     Sector(name='2874', reg=None, type_='320',
+                            from_='FAO', to='BRS',
+                            off=datetime.datetime(2023, 6, 25, 22, 33),
+                            on=datetime.datetime(2023, 6, 26, 0, 57),
+                            quasi=False, position=False)), crew=crew_result), )
+        self.assertEqual(roster._duties(src), expected)
