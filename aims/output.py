@@ -225,13 +225,13 @@ def _build_dict(duty: Duty) -> dict[str, str]:
     return event
 
 
-def ical(duties: tuple[Duty, ...]) -> str:
+def ical(duties: tuple[Duty, ...], do_ade) -> str:
     events = []
     for duty in duties:
         if duty.finish:
             d = _build_dict(duty)
             events.append(vevent.format(**d))
-        else:
+        elif do_ade:
             date = duty.start.date()
             uid = "{}{}@HURSTS.ORG.UK".format(
                 date.isoformat(), duty.code)

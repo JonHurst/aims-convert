@@ -340,7 +340,7 @@ class MainWindow(ttk.Frame):
             return
         duties = roster.duties(html)
         # note: normalise newlines for Text widget - will restore on output
-        txt = ical(duties).replace("\r\n", "\n")
+        txt = ical(duties, self.ms.with_ade.get()).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'ical')
 

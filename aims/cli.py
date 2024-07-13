@@ -27,7 +27,7 @@ def main() -> int:
     elif args.format == "csv":
         print(output.csv(duties))
     elif args.format == "ical":
-        print(output.ical(duties))
+        print(output.ical(duties, args.ade))
     return 0
 
 
