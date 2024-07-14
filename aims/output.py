@@ -210,23 +210,25 @@ def _build_dict(duty: Duty) -> dict[str, str]:
     sector_strings = []
     airports = []
     from_ = None
-    if duty.sectors:
-        for sector in duty.sectors:
-            if not from_ and sector.from_:
-                from_ = sector.from_
-            if sector.position:
-                airports.append("[psn]")
-            elif sector.quasi:
+    for sector in duty.sectors:
+        if not from_ and sector.from_:
+            from_ = sector.from_
+        if sector.position:
+            airports.append("[psn]")
+        elif sector.quasi:
+            if sector.from_:
                 airports.append(f"[{sector.name}]")
-            if sector.to:
-                airports.append(sector.to)
-            off, on = sector.off, sector.on
-            from_to = ""
-            if sector.from_ and sector.to:
-                from_to = f"{sector.from_}/{sector.to} "
-            sector_strings.append(
-                f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
-                f"{from_to}")
+            else:
+                airports.append(sector.name)
+        if sector.to:
+            airports.append(sector.to)
+        off, on = sector.off, sector.on
+        from_to = ""
+        if sector.from_ and sector.to:
+            from_to = f"{sector.from_}/{sector.to} "
+        sector_strings.append(
+            f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
+            f"{from_to}")
     if from_:
         airports = [from_] + airports
     event["sectors"] = "DESCRIPTION:{}\r\n".format(
