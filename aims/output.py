@@ -5,6 +5,7 @@ import io
 import csv as libcsv
 import datetime as dt
 import re
+from typing import Optional
 
 from aims.roster import Duty, Sector, CrewMember
 import nightflight.night as nightcalc  # type: ignore
@@ -51,6 +52,31 @@ def _night(sector: Sector) -> tuple[int, bool]:
     return (round(night_duration), night_landing)
 
 
+def _roster_sectors(
+        sectors: tuple[Sector, ...]
+) -> tuple[tuple[str, ...], int]:
+    airports: list[str] = []
+    block = 0
+    from_: Optional[str] = None
+    for sector in sectors:
+        if not from_ and sector.from_:
+            from_ = sector.from_
+        if sector.position:
+            airports.append("[psn]")
+        elif sector.quasi:
+            if sector.from_:
+                airports.append(f"[{sector.name}]")
+            else:
+                airports.append(sector.name)
+        if sector.to:
+            airports.append(sector.to)
+        if not sector.quasi and not sector.position:
+            block += int((sector.on - sector.off).total_seconds()) // 60
+    if from_:
+        airports = [from_] + airports
+    return tuple(airports), block
+
+
 def roster(duties: tuple[Duty, ...]) -> str:
     UTC = Z("UTC")
     LT = Z("Europe/London")
@@ -61,28 +87,25 @@ def roster(duties: tuple[Duty, ...]) -> str:
         start, end = [X.replace(tzinfo=UTC).astimezone(LT)
                       for X in (duty.start, duty.finish)]
         duration = int((end - start).total_seconds()) // 60
-        from_ = None
-        airports = []
-        block = 0
-        for sector in duty.sectors:
-            if not from_ and sector.from_:
-                from_ = sector.from_
-            if sector.position:
-                airports.append("[psn]")
-            elif sector.quasi:
-                airports.append(f"[{sector.name}]")
-            if sector.to:
-                airports.append(sector.to)
-                off, on = sector.off, sector.on
-                if not sector.quasi and not sector.position:
-                    block += int((on - off).total_seconds()) // 60
-        if from_:
-            airports = [from_] + airports
+        airports, block = _roster_sectors(duty.sectors)
         duration_str = f"{duration // 60}:{duration % 60:02d}"
         block_str = f"{block // 60}:{block % 60:02d}"
         output.append(f"{start:%d/%m/%Y %H:%M}-{end:%H:%M} "
                       f"{'-'.join(airports)} {block_str}/{duration_str}")
     return "\n".join(output)
+
+
+def _efj_sector(sector: Sector) -> str:
+    duration = (sector.on - sector.off).total_seconds() // 60
+    night_duration, night_landing = _night(sector)
+    night_flag = ""
+    if night_duration == duration:
+        night_flag = " n"
+    elif night_duration:
+        ldg_flag = " ln" if night_landing else ""
+        night_flag = f" n:{night_duration}{ldg_flag}"
+    return (f"{sector.from_}/{sector.to} "
+            f"{sector.off:%H%M}/{sector.on:%H%M}{night_flag}")
 
 
 def efj(duties: tuple[Duty, ...]) -> str:
@@ -107,17 +130,7 @@ def efj(duties: tuple[Duty, ...]) -> str:
             if last_airframe != (reg, type_):
                 output.append(f"{reg}:{type_}")
                 last_airframe = (reg, type_)
-            duration = (sector.on - sector.off).total_seconds() // 60
-            night_duration, night_landing = _night(sector)
-            night_flag = ""
-            if night_duration == duration:
-                night_flag = " n"
-            elif night_duration:
-                ldg_flag = " ln" if night_landing else ""
-                night_flag = f" n:{night_duration}{ldg_flag}"
-            output.append(
-                f"{sector.from_}/{sector.to} "
-                f"{sector.off:%H%M}/{sector.on:%H%M}{night_flag}")
+            output.append(_efj_sector(sector))
         output.append("")
     return "\n".join(output)
 
