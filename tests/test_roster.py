@@ -221,3 +221,14 @@ class Test_duties(unittest.TestCase):
                             on=datetime.datetime(2023, 6, 26, 0, 57),
                             quasi=False, position=False)), crew=crew_result), )
         self.assertEqual(roster._duties(src), expected)
+
+
+class Test_extract(unittest.TestCase):
+
+    def test_not_html(self):
+        with self.assertRaises(roster.InputFileException):
+            roster._extract("Not an html file")
+
+    def test_not_schedule(self):
+        with self.assertRaises(roster.InputFileException):
+            roster._extract("<!DOCTYPE html><html>Not a schedule</html>")

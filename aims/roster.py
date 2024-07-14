@@ -48,9 +48,20 @@ class InputFileException(RosterException):
 
 
 def _extract(roster: str) -> tuple[Row, ...]:
+    # check it's an html5 file
+    html5_header = "<!DOCTYPE html><html>"
+    if roster[:len(html5_header)] != html5_header:
+        raise InputFileException
+    # make some soup
     soup = BeautifulSoup(roster, "html5lib")
+    # check it's a Personal Crew Schedule Report
+    rows = soup.find_all("tr")
+    if (not rows or len(rows) < 2 or
+            next(rows[1].stripped_strings) != "Personal Crew Schedule Report"):
+        raise InputFileException
+    # process the roster
     retval = []
-    for row in soup.find_all("tr"):
+    for row in rows:
         row_data = []
         for entry in row("td"):
             row_data.append(tuple([X.replace("\xa0", " ")
