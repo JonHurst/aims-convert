@@ -129,6 +129,26 @@ class Test_duties(unittest.TestCase):
                             quasi=True, position=True)), crew=()))
         self.assertEqual(roster._duties(src), expected)
 
+    def test_standby(self):
+        src = (
+            ((), ('25/07/2024 Thu',),
+             ('ESBY',), ('Early Standby',),
+             (),  ('05:15 - 13:15',),  (),
+             (),  ('08:00',),
+             (),  (),  ()),
+        )
+        expected = (
+            Duty(code=None,
+                 start=datetime.datetime(2024, 7, 25, 5, 15),
+                 finish=datetime.datetime(2024, 7, 25, 13, 15),
+                 sectors=(
+                     Sector(name='ESBY', reg=None, type_=None,
+                            from_=None, to=None,
+                            off=datetime.datetime(2024, 7, 25, 5, 15),
+                            on=datetime.datetime(2024, 7, 25, 13, 15),
+                            quasi=True, position=False), ), crew=()),)
+        self.assertEqual(roster._duties(src), expected)
+
     def test_standby_before_flights(self):
         src = (((),
                 ('02/07/2023 Sun',),
