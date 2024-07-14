@@ -228,6 +228,8 @@ class Test_extract(unittest.TestCase):
     def test_not_html(self):
         with self.assertRaises(roster.InputFileException):
             roster._extract("Not an html file")
+        with self.assertRaises(roster.InputFileException):
+            roster._extract("")
 
     def test_not_schedule(self):
         with self.assertRaises(roster.InputFileException):
