@@ -3,7 +3,6 @@ import datetime as dt
 from bs4 import BeautifulSoup  # type: ignore
 import sys
 import re
-import itertools
 
 from aims.roster import Duty, Sector, CrewMember, InputFileException
 
@@ -77,19 +76,15 @@ def _duty(
 
 def _duties(data: STR_TABLE) -> tuple[Duty, ...]:
     sectors, crew = _sectors_and_crew(data)
-    duty_id = 0
+    groups = [[sectors[0]]]
     last_on = sectors[0].on
-    ids = [0, ]
     for sector in sectors[1:]:
         if sector.off - last_on > dt.timedelta(hours=10):
-            duty_id += 1
-        ids.append(duty_id)
+            groups.append([sector])
+        else:
+            groups[-1].append(sector)
         last_on = sector.on
-    retval: list[Duty] = []
-    for _, group in itertools.groupby(zip(ids, sectors), key=lambda x: x[0]):
-        sectors = tuple((X[1] for X in group))
-        retval.append(_duty(sectors, crew))
-    return tuple(retval)
+    return tuple(_duty(tuple(X), crew) for X in groups)
 
 
 if __name__ == "__main__":
