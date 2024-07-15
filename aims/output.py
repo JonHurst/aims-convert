@@ -225,10 +225,12 @@ def _build_dict(duty: Duty) -> dict[str, str]:
         off, on = sector.off, sector.on
         from_to = ""
         if sector.from_ and sector.to:
-            from_to = f"{sector.from_}/{sector.to} "
+            from_to = f" {sector.from_}/{sector.to} "
+        if sector.reg and sector.type_:
+            airframe = f" {sector.reg} {sector.type_}"
         sector_strings.append(
-            f"{off:%H:%M}z-{on:%H:%M}z {sector.name} "
-            f"{from_to}")
+            f"{off:%H:%M}z-{on:%H:%M}z {sector.name}"
+            f"{airframe}{from_to}")
     if from_:
         airports = [from_] + airports
     event["sectors"] = "DESCRIPTION:{}\r\n".format(
