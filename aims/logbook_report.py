@@ -37,7 +37,7 @@ def _duty(
     return Duty(None,
                 lowest_off - dt.timedelta(hours=1),
                 highest_on + dt.timedelta(minutes=30),
-                sectors, tuple(CrewMember(X, "CP") for X in cpt_names))
+                sectors, tuple(CrewMember(X, "CP") for X in sorted(cpt_names)))
 
 
 def duties(soup) -> tuple[Duty, ...]:
