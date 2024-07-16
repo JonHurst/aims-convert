@@ -37,28 +37,20 @@ def _extract(html: str) -> STR_TABLE:
     return tuple(retval)
 
 
-def _sectors_and_crew(
-        data: STR_TABLE
-) -> tuple[tuple[Sector, ...], dict[dt.datetime, str]]:
-    sectors: list[Sector] = []
-    crew: dict[dt.datetime, str] = {}
-    for row in data:
-        date = dt.datetime.strptime(row[DATE], "%d/%m/%y").date()
-        off = dt.datetime.combine(
-            date,
-            dt.datetime.strptime(row[OFF], "%H:%M").time())
-        on = dt.datetime.combine(
-            date,
-            dt.datetime.strptime(row[ON], "%H:%M").time())
-        if on < off:
-            on += dt.timedelta(1)
-        sectors.append(Sector(
-            row[FLTNUM], row[REG], row[TYPE],
-            row[FROM], row[TO],
-            off, on,
-            False, False))
-        crew[off] = row[CP]
-    return (tuple(sectors), crew)
+def _sector(row: tuple[str, ...]) -> Sector:
+    date = dt.datetime.strptime(row[DATE], "%d/%m/%y").date()
+    off = dt.datetime.combine(
+        date,
+        dt.datetime.strptime(row[OFF], "%H:%M").time())
+    on = dt.datetime.combine(
+        date,
+        dt.datetime.strptime(row[ON], "%H:%M").time())
+    if on < off:
+        on += dt.timedelta(1)
+    return Sector(row[FLTNUM], row[REG], row[TYPE],
+                  row[FROM], row[TO],
+                  off, on,
+                  False, False)
 
 
 def _duty(
@@ -75,7 +67,12 @@ def _duty(
 
 
 def _duties(data: STR_TABLE) -> tuple[Duty, ...]:
-    sectors, crew = _sectors_and_crew(data)
+    sectors: list[Sector] = []
+    crew: dict[dt.datetime, str] = {}
+    for row in data:
+        sector = _sector(row)
+        sectors.append(sector)
+        crew[sector.off] = row[CP]
     groups = [[sectors[0]]]
     last_on = sectors[0].on
     for sector in sectors[1:]:
