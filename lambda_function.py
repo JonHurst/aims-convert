@@ -1,7 +1,8 @@
 import json
 
-import aims.roster as roster
+from aims.parse import parse
 import aims.output as output
+from aims.data_structures import RosterException
 
 
 def lambda_handler(event, context):
@@ -10,25 +11,18 @@ def lambda_handler(event, context):
     format = data["format"]
     options = data["options"]
     try:
-        lines = roster.lines(in_)
-        columns = roster.columns(lines)
-        sectors = roster.sectors(columns)
+        duties = parse(in_)
         if format == "csv":
-            out = output.csv(
-                sectors,
-                roster.crew_dict(lines))
+            out = output.csv(duties)
         elif format == "roster":
-            out = output.roster(sectors)
+            out = output.roster(duties)
         elif format == "efj":
-            out = output.efj(
-                sectors,
-                roster.crew_dict(lines))
+            out = output.efj(duties)
         elif format == "ical":
-            ade = roster.all_day_events(columns) if "ade" in options else ()
-            out = output.ical(sectors, ade)
+            out = output.ical(duties, "ade" in options)
         else:
             out = "Not implemented"
-    except roster.RosterException as e:
+    except RosterException as e:
         out = str(e)
     return {
         'statusCode': 200,
