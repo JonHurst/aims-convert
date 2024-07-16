@@ -6,8 +6,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 import ctypes
 
-import aims.roster as roster
-
+import aims.parse
+from aims.data_structures import RosterException, InputFileException
 from aims.output import csv, ical, efj
 
 VERSION = "1.2"
@@ -73,7 +73,7 @@ class Actions(ttk.Frame):
         frm_1 = ttk.Frame(self)
         frm_1.pack(fill=tk.X)
         btn_convert = ttk.Button(
-            frm_1, text="Load Roster", width=0,
+            frm_1, text="Load Report", width=0,
             command=lambda: self.event_generate("<<Action-Import>>"))
         btn_convert.pack(fill=tk.X)
 
@@ -297,7 +297,7 @@ class MainWindow(ttk.Frame):
                 self.__csv()
             else:
                 self.__ical()
-        except roster.RosterException as e:
+        except RosterException as e:
             self.txt.delete('1.0', tk.END)
             messagebox.showerror("Error", str(e))
 
@@ -316,7 +316,7 @@ class MainWindow(ttk.Frame):
                 with open(fn) as f:
                     retval = f.read()
             except Exception:
-                raise roster.InputFileException
+                raise InputFileException
         return retval
 
     def __csv(self):
@@ -328,7 +328,7 @@ class MainWindow(ttk.Frame):
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
 
-        duties = roster.parse(html)
+        duties = aims.parse.parse(html)
         # note: normalise newlines for Text widget - will restore on output
         txt = csv(duties).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
@@ -338,7 +338,7 @@ class MainWindow(ttk.Frame):
         html = self.__roster_html()
         if not html:
             return
-        duties = roster.parse(html)
+        duties = aims.parse.parse(html)
         # note: normalise newlines for Text widget - will restore on output
         txt = ical(duties, self.ms.with_ade.get()).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
@@ -351,7 +351,7 @@ class MainWindow(ttk.Frame):
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Working…", 'efj')
         self.txt.update()
-        duties = roster.parse(html)
+        duties = aims.parse.parse(html)
         txt = efj(duties)
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'efj')

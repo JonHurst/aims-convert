@@ -3,9 +3,8 @@
 import sys
 import argparse
 
-import aims.roster as roster
+from aims.parse import parse
 import aims.output as output
-import aims.logbook_report as logbook
 
 
 def _args():
@@ -15,16 +14,12 @@ def _args():
     parser.add_argument('format',
                         choices=['roster', 'efj', 'csv', 'ical'])
     parser.add_argument('--ade', action="store_true")
-    parser.add_argument('--lb', action="store_true")
     return parser.parse_args()
 
 
 def main() -> int:
     args = _args()
-    if args.lb:
-        duties = logbook.parse(sys.stdin.read())
-    else:
-        duties = roster.parse(sys.stdin.read())
+    duties = parse(sys.stdin.read())
     if args.format == "roster":
         print(output.roster(duties))
     elif args.format == "efj":

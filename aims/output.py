@@ -7,7 +7,7 @@ import datetime as dt
 import re
 from typing import Optional
 
-from aims.roster import Duty, Sector, CrewMember
+from aims.data_structures import Duty, Sector, CrewMember
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
@@ -226,6 +226,7 @@ def _build_dict(duty: Duty) -> dict[str, str]:
         from_to = ""
         if sector.from_ and sector.to:
             from_to = f" {sector.from_}/{sector.to} "
+        airframe = ""
         if sector.reg and sector.type_:
             airframe = f" {sector.reg} {sector.type_}"
         sector_strings.append(
