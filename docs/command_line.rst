@@ -1,13 +1,32 @@
 Command Line Interface
 ======================
 
+The program accepts either a vertical AIMS “Crew Schedule” or an AIMS “Pilot
+LogBook report“ as input. These are available from the AIMS web interface at
+https://ezy-crew.aims.aero.
+
+The “Crew Schedule" should generally be preferred since it includes accurate
+duty times, full crew, and non-flying duties. It does, unfortunately, lack
+details of the aircraft registration, including only the aircraft type, and data
+can only be downloaded in chunks of up to 31 days. To download it, go to ``Crew
+Schedule | My Schedule``, select the required period, then click the ``Print``
+button. The viewer that appears has an ``Export To`` button on its taskbar.
+Click this and select ``HTML``.
+
+The “Pilot Logbook report” can be downloaded in chunks of up to two years, and
+includes the aircraft registrations. Since it doesn't include actual report and
+off duty times, these are approximated based on standard report and debrief
+times when using this input. To download it, go to ``Reports | Pilot LogBook
+report``, set the required period and click ``Go``. Again, the viewer has an
+``Export To`` button, from which you should select ``HTML``.
+
 The following assumes that aims-convert has been installed via pip, pipx etc.
 and that this has added the ``aims`` entry point to somewhere that is included
 in your PATH environmental variable.
 
 The script is written as a filter, i.e. it takes input from STDIN, writes to
 STDOUT and sends any error information to STDERR. In the examples below, replace
-``aims_roster`` with the file path of your downloaded roster.
+``aims_roster`` with the file path of your downloaded roster or logbook report.
 
 eFJ output
 ----------

@@ -12,6 +12,25 @@ GUI. For example, Debian and Ubuntu require::
 
   $ sudo apt install python3-tk
 
+The program accepts either a vertical AIMS “Crew Schedule” or an AIMS “Pilot
+LogBook report“ as input. These are available from the AIMS web interface at
+https://ezy-crew.aims.aero.
+
+The “Crew Schedule" should generally be preferred since it includes accurate
+duty times, full crew, and non-flying duties. It does, unfortunately, lack
+details of the aircraft registration, including only the aircraft type, and data
+can only be downloaded in chunks of up to 31 days. To download it, go to ``Crew
+Schedule | My Schedule``, select the required period, then click the ``Print``
+button. The viewer that appears has an ``Export To`` button on its taskbar.
+Click this and select ``HTML``.
+
+The “Pilot Logbook report” can be downloaded in chunks of up to two years, and
+includes the aircraft registrations. Since it doesn't include actual report and
+off duty times, these are approximated based on standard report and debrief
+times when using this input. To download it, go to ``Reports | Pilot LogBook
+report``, set the required period and click ``Go``. Again, the viewer has an
+``Export To`` button, from which you should select ``HTML``.
+
 The control bar on the left has radio buttons to select the output type. If you
 select "Roster (.ics)", you additionally have the option to include all day
 events such as days off.
