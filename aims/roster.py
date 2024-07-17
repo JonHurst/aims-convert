@@ -13,15 +13,21 @@ DATE, CODES, DETAILS, DSTART, TIMES, DEND, BHR, DHR, IND, CREW = range(1, 11)
 
 
 def _convert_datestring(in_: str) -> dt.date:
-    return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
+    try:
+        return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
+    except ValueError:
+        raise InputFileException
 
 
 def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
-    if in_[-2:] == "⁺¹":
-        in_ = in_[:-2]
-        date = date + dt.timedelta(1)
-    time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
-    return dt.datetime.combine(date, time)
+    try:
+        if in_[-2:] == "⁺¹":
+            in_ = in_[:-2]
+            date = date + dt.timedelta(1)
+        time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
+        return dt.datetime.combine(date, time)
+    except ValueError:
+        raise InputFileException
 
 
 def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
@@ -55,6 +61,8 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
 
 
 def _duty(row: Row) -> Duty:
+    if len(row) != 12:
+        raise InputFileException
     date = _convert_datestring(row[DATE][0])
     # if there are no times, it is an all day event
     if not row[TIMES]:

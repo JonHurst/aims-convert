@@ -2,7 +2,9 @@ import unittest
 import datetime
 
 import aims.roster as roster
-from aims.roster import Duty, Sector, CrewMember
+from aims.data_structures import (
+    Duty, Sector, CrewMember, InputFileException
+)
 
 crew = ('CP - 0000 - CAPTAIN THE',
         'FO - 0001 - FO THE',
@@ -208,3 +210,22 @@ class Test_duty(unittest.TestCase):
                                    quasi=False, position=False)),
                         crew=crew_result)
         self.assertEqual(roster._duty(src), expected)
+
+    def test_emptyrow(self):
+        with self.assertRaises(InputFileException):
+            roster._duty(())
+        with self.assertRaises(InputFileException):
+            roster._duty(() * 12)
+
+    def test_bad_date(self):
+        with self.assertRaises(InputFileException):
+            roster._duty(((), ('31/06/2023 Sun',), ('D/O',),
+                          ('Day off',), (), (), (), (), (), (), (), ()))
+
+    def test_bad_time(self):
+        with self.assertRaises(InputFileException):
+            roster._duty(((), ('25/07/2024 Thu',),
+                          ('ESBY',), ('Early Standby',),
+                          (),  ('24:00 - 13:15',),  (),
+                          (),  ('08:00',),
+                          (),  (),  ()))
