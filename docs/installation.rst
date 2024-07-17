@@ -46,7 +46,7 @@ Single file install
 
 The graphical interface can be installed by downloading from
 https://hursts.org.uk/shiv/aimsgui.pyw and copying to a location of your
-choosing. If you need to deal with rosters downloaded before the easyJet’s July
+choosing. If you need to deal with rosters downloaded before easyJet’s July
 2024 AIMS update, you can use version 1.2 which is available to download at
 https://hursts.org.uk/shiv/aimsgui-1.2.pyw.
 
