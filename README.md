@@ -1,15 +1,13 @@
 # AIMS Roster Data Extraction #
 
 This will primarily be of interest to easyJet pilots. It extracts data from a
-“detailed roster” as can be downloaded from AIMS. Pilots from other airlines
-that use AIMS *may* also find this useful — it has only been tested against the
-files from easyJet’s version of AIMS (as that is all that I have access to), so
-its utility will depend on whether whatever version is being used by your
-airline produces sufficiently similar output.
+reports that can be downloaded from AIMS. Pilots from other airlines that use
+AIMS *may* also find this useful — it has only been tested against the files
+from easyJet’s version of AIMS (as that is all that I have access to), so its
+utility will depend on whether whatever version is being used by your airline
+produces sufficiently similar output.
 
-As well as extracting the data from the AIMS roster, the registration and type
-of the aircraft operating the sectors is looked up, and a night flying
-calculation is carried out.
+As well as extracting the data, a night flying calculation is carried out.
 
 The three main formats that the data can be extracted to are electronic Flight
 Journal (eFJ), iCalendar and CSV.

@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aims-convert",
-    version="1.2",
+    version="2.0",
     author="Jon Hurst",
     author_email="jon.a@hursts.org.uk",
-    description="Extract information from AIMS detailed roster",
+    description="Extract useful information from AIMS",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -23,7 +23,6 @@ setuptools.setup(
     ],
     python_requires='>=3.11',
     install_requires=[
-        "requests",
         "nightflight",
         "bs4",
         "html5lib"
