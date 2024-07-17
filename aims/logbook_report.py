@@ -3,6 +3,7 @@ import datetime as dt
 from bs4 import BeautifulSoup  # type: ignore
 import sys
 import re
+from typing import Optional
 
 from aims.data_structures import Duty, Sector, CrewMember
 
@@ -11,7 +12,9 @@ DATE, FLTNUM, FROM, OFF, TO, ON, TYPE, REG, BLOCK, CP = range(1, 11)
 STR_TABLE = tuple[tuple[str, ...], ...]
 
 
-def _sector(row: tuple[str, ...]) -> Sector:
+def _sector(row: tuple[str, ...]) -> Optional[Sector]:
+    if not row[FLTNUM]:  # this is a sim sector
+        return None
     date = dt.datetime.strptime(row[DATE], "%d/%m/%y").date()
     off = dt.datetime.combine(
         date,
@@ -37,7 +40,8 @@ def _duty(
     return Duty(None,
                 lowest_off - dt.timedelta(hours=1),
                 highest_on + dt.timedelta(minutes=30),
-                sectors, tuple(CrewMember(X, "CP") for X in sorted(cpt_names)))
+                sectors,
+                tuple(CrewMember(X, "CP") for X in sorted(cpt_names) if X))
 
 
 def duties(soup) -> tuple[Duty, ...]:
@@ -49,8 +53,9 @@ def duties(soup) -> tuple[Duty, ...]:
                         [tuple(X.stripped_strings) for X in row("td")])
         if (len(strings) > 10 and re_date.match(strings[DATE])):
             sector = _sector(strings)
-            sectors.append(sector)
-            crew[sector.off] = strings[CP]
+            if sector:
+                sectors.append(sector)
+                crew[sector.off] = strings[CP]
     groups = [[sectors[0]]]
     last_on = sectors[0].on
     for sector in sectors[1:]:
