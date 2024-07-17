@@ -5,7 +5,7 @@ Data Structures
 
 .. class:: Sector
 
-   A Named Tuple representing a sector or a quasi sector such as standby,
+   A NamedTuple representing a sector or a quasi sector such as standby,
    positioning etc.
 
    .. attribute:: name
@@ -59,28 +59,40 @@ Data Structures
 
 .. class:: Duty
 
-   A Named Tuple representing a duty
+   A NamedTuple representing a duty
+
+   .. attribute:: code
+      :type: Optional[str]
+
+   The name of an all day event, if applicable.
 
    .. attribute:: start
       :type: datetime.datetime
 
    The start time of the duty. Can be the report time for a series of sectors or
-   the start time of a standby, taxi ride etc.
+   the start time of a standby, taxi ride etc. 00:00 on the relevant day for an
+   all day event.
 
    .. attribute:: finish
-      :type: datetime.datetime
+      :type: Optional[datetime.datetime]
 
-   The finish time for a duty.
+   The finish time for a duty. None for an all day event
 
    .. attribute:: sectors
       :type: tuple[Sector, ...]
 
    A (possibly empty) tuple of :class:`Sector` objects that are part of the duty.
 
+   .. attribute:: crew
+      :type: tuple[CrewMember, ...]
+
+   A (possibly empty} tuple of :class:`CrewMember` objects, representing all the
+   crew members that were involved in the duty. While this would make more sense
+   on a Sector by Sector basis, the input only lists crew for the entire duty.
 
 .. class:: CrewMember
 
-   A Named Tuple representing a crew member.
+   A NamedTuple representing a crew member.
 
    .. attribute:: name
       :type: str
