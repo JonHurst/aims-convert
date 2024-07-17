@@ -9,7 +9,6 @@ from aims.data_structures import Duty, Sector, CrewMember
 
 
 DATE, FLTNUM, FROM, OFF, TO, ON, TYPE, REG, BLOCK, CP = range(1, 11)
-STR_TABLE = tuple[tuple[str, ...], ...]
 
 
 def _sector(row: tuple[str, ...]) -> Optional[Sector]:
