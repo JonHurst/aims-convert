@@ -8,6 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   </head>
   <body ondrop="dropHandler(event)" ondragover="dragoverHandler(event)">
+    <div class="messagebar">
+      <b>Note:</b> This web application is now using the new format reports
+      from easyJet's updated version of AIMS — you can use either a schedule
+      from <code>Crew Schedule | My Schedule | Print</code>, then download as
+      HTML, or the logbook report from <code>Reports | Pilot LogBook
+      report</code>. This is all very new, so there may be problems due to
+      features of the new reports that I have not encountered in my own
+      rosters; let me know if you are affected.
+    </div>
     <div class="grid">
       <div class="sidebar">
         <button id="help">Help</button>
@@ -35,7 +44,7 @@
         </fieldset>
         <fieldset>
           <legend>Actions</legend>
-          <button id="load_roster">Load Roster</button>
+          <button id="load_roster">Load Report</button>
           <input class="file" id="input" type="file" />
           <button id="save">Save</button>
           <button id="copy">Copy All</button>
@@ -43,7 +52,7 @@
       </div>
       <textarea id="output" class="editor" contenteditable="true"
                 spellcheck="false" wrap="off"
-                placeholder='Click "Load Roster" or drag and drop.'
+                placeholder='Click "Load Report" or drag and drop.'
                 ></textarea>
     </div>
   </body>

@@ -44,8 +44,21 @@ body {
 .editor {
     grid-column: 2;
     border: var(--border);
-    border-radius: var(--border);
+    border-radius: var(--border-radius);
     font-size: 1.1rem;
+}
+
+.messagebar {
+    margin: 0.5rem;
+    padding: 1rem;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    line-height: 1.5;
+}
+
+.messagebar code {
+    font-size: 1.05rem;
+    color: darkgreen;
 }
 
 .rbutton {
