@@ -1,7 +1,7 @@
 Data Structures
 ===============
 
-.. currentmodule:: aims.roster
+.. currentmodule:: aims.data_structures
 
 .. class:: Sector
 
@@ -14,6 +14,15 @@ Data Structures
    Either the flight number of a sector or a string describing the type of a
    quasi sector (e.g. STBY, ADTY).
 
+   .. attribute:: reg
+      :type: Optional[str]
+
+   The registration of the aircraft, if applicable.
+
+   .. attribute:: type_
+      :type: Optional[str]
+
+   The type of the aircraft, if applicable.
 
    .. attribute:: from_
       :type: Optional[str]
@@ -35,10 +44,17 @@ Data Structures
 
    On blocks time or the end time of a standby, postitioning duty etc.
 
-   .. attribute:: src
-      :type: DataBlock
+   .. attribute:: quasi
+      :type: bool
 
-   The :data:`DataBlock` from which the object was created.
+   A flag indicating that the sector did not involve and aircraft, e.g. it was a
+   standby or ground positioning.
+
+   .. attribute:: position
+      :type: bool
+
+   A flag indicating that the sector was either ground or air positioning.
+
 
 
 .. class:: Duty
