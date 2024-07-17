@@ -25,6 +25,5 @@ module to be used as a library.
    command_line
    functions
    output
-   type_aliases
    data_structures
    exceptions
