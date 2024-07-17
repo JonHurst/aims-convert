@@ -18,6 +18,4 @@ def parse(html: str) -> tuple[Duty, ...]:
     elif "Pilot Logbook" in soup.find("body").stripped_strings:
         return aims.logbook_report.duties(soup)
     else:
-        for s in soup.find("body").stripped_strings:
-            print(s)
         raise InputFileException
