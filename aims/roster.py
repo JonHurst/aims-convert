@@ -2,6 +2,7 @@
 import datetime as dt
 from bs4 import BeautifulSoup  # type: ignore
 import sys
+from typing import Optional
 
 from aims.data_structures import Duty, Sector, CrewMember, InputFileException
 
@@ -13,21 +14,15 @@ DATE, CODES, DETAILS, DSTART, TIMES, DEND, BHR, DHR, IND, CREW = range(1, 11)
 
 
 def _convert_datestring(in_: str) -> dt.date:
-    try:
-        return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
-    except ValueError:
-        raise InputFileException
+    return dt.datetime.strptime(in_.split()[0], "%d/%m/%Y").date()
 
 
 def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
-    try:
-        if in_[-2:] == "⁺¹":
-            in_ = in_[:-2]
-            date = date + dt.timedelta(1)
-        time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
-        return dt.datetime.combine(date, time)
-    except ValueError:
-        raise InputFileException
+    if in_[-2:] == "⁺¹":
+        in_ = in_[:-2]
+        date = date + dt.timedelta(1)
+    time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
+    return dt.datetime.combine(date, time)
 
 
 def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
@@ -60,38 +55,41 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
-def _duty(row: Row) -> Duty:
-    if len(row) != 12:
-        raise InputFileException
-    date = _convert_datestring(row[DATE][0])
-    # if there are no times, it is an all day event
-    if not row[TIMES]:
-        return Duty(row[CODES][0],
-                    dt.datetime.combine(date, dt.time()),
-                    None, (), ())
-    # If duty start/finish does not exist, take the times from
-    # the only sector. Details will be recorded in Duty.sectors.
-    if row[DSTART]:
-        start = _convert_timestring(row[DSTART][0], date)
-        end = _convert_timestring(row[DEND][0], date)
-    else:
-        assert len(row[TIMES]) == 1
-        times = row[TIMES][0].split(" - ")
-        start = _convert_timestring(times[0], date)
-        end = _convert_timestring(times[1], date)
-    crew = []
-    for m in row[CREW]:
-        strings = m.split(" - ")
-        if len(strings) >= 3:
-            if strings[1] == "PAX":
-                continue
-            crew.append(CrewMember(strings[-1], strings[0]))
+def _duty(row: Row) -> Optional[Duty]:
+    try:
+        if not row[CODES]:
+            return None
+        date = _convert_datestring(row[DATE][0])
+        # if there are no times, it is an all day event
+        if not row[TIMES]:
+            return Duty(row[CODES][0],
+                        dt.datetime.combine(date, dt.time()),
+                        None, (), ())
+        # If duty start/finish does not exist, take the times from
+        # the only sector. Details will be recorded in Duty.sectors.
+        if row[DSTART]:
+            start = _convert_timestring(row[DSTART][0], date)
+            end = _convert_timestring(row[DEND][0], date)
         else:
-            crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
-                                  crew[-1].role)
-    return Duty(None, start, end,
-                _sectors(row, date),
-                tuple(crew))
+            assert len(row[TIMES]) == 1
+            times = row[TIMES][0].split(" - ")
+            start = _convert_timestring(times[0], date)
+            end = _convert_timestring(times[1], date)
+        crew = []
+        for m in row[CREW]:
+            strings = m.split(" - ")
+            if len(strings) >= 3:
+                if strings[1] == "PAX":
+                    continue
+                crew.append(CrewMember(strings[-1], strings[0]))
+            else:
+                crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
+                                      crew[-1].role)
+        return Duty(None, start, end,
+                    _sectors(row, date),
+                    tuple(crew))
+    except (IndexError, ValueError):
+        raise InputFileException(f"Bad Record: {str(row)}")
 
 
 def duties(soup) -> tuple[Duty, ...]:
@@ -107,9 +105,10 @@ def duties(soup) -> tuple[Duty, ...]:
                 for X in next(rows)("td"))
             if not strings[DATE]:  # line without date ends table
                 break
-            retval.append(_duty(strings))
+            if duty := _duty(strings):
+                retval.append(duty)
     except (StopIteration, IndexError):
-        raise InputFileException
+        raise InputFileException("Duty table ended unexpectedly")
     return tuple(retval)
 
 

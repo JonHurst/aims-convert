@@ -9,13 +9,16 @@ def parse(html: str) -> tuple[Duty, ...]:
     # check it's an html5 file
     html5_header = "<!DOCTYPE html><html>"
     if html[:len(html5_header)] != html5_header:
-        raise InputFileException
+        raise InputFileException("HTML5 header not found.")
     # make some soup
     soup = BeautifulSoup(html, "html5lib")
     # route the soup
-    if "Personal Crew Schedule Report" in soup.find("body").stripped_strings:
+    strings = list(soup.find("body").stripped_strings)
+    if "Personal Crew Schedule Report" in strings:
         return aims.roster.duties(soup)
-    elif "Pilot Logbook" in soup.find("body").stripped_strings:
+    elif "Pilot Logbook" in strings:
         return aims.logbook_report.duties(soup)
     else:
-        raise InputFileException
+        raise InputFileException(
+            "Report marker not found: \n" +
+            "; ".join(strings[:20]))

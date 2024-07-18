@@ -28,10 +28,8 @@ class Duty(NamedTuple):
 
 
 class RosterException(Exception):
-
-    def __str__(self):
-        return self.__doc__
+    "Base class"
 
 
 class InputFileException(RosterException):
-    "Input file does not appear to be an AIMS roster."
+    "Error in input file"

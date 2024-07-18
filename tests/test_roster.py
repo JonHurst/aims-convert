@@ -211,6 +211,10 @@ class Test_duty(unittest.TestCase):
                         crew=crew_result)
         self.assertEqual(roster._duty(src), expected)
 
+    def test_not_published(self):
+        src = ((), ('01/08/2024 Thu',), (), (), (), (), (), (), (), ('D',), ())
+        self.assertEqual(roster._duty(src), None)
+
     def test_emptyrow(self):
         with self.assertRaises(InputFileException):
             roster._duty(())
