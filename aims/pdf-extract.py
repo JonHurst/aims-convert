@@ -30,7 +30,8 @@ def raw_columns(htext_elements: list[ELEMENT]) -> list[COLUMN]:
     # find bottom of table
     bottom = -1.0
     for e in htext_elements:
-        if e[TEXT] == "F" and e[BBOX][X1] < headers[0][BBOX][X0]:
+        if (e[TEXT].split()[0] == "F"
+                and e[BBOX][X1] < headers[0][BBOX][X0]):
             bottom = e[BBOX][Y1]
             break
     # find table elements
