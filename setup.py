@@ -25,7 +25,8 @@ setuptools.setup(
     install_requires=[
         "nightflight",
         "bs4",
-        "html5lib"
+        "html5lib",
+        "pdfminer.six"
     ],
     package_data={
         "aims": ['py.typed'],
