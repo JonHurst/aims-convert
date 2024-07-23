@@ -13,16 +13,14 @@ class TestDuty(unittest.TestCase):
                    from_='BRS', to='AGP',
                    off=datetime.datetime(2022, 7, 23, 11, 44),
                    on=datetime.datetime(2022, 7, 23, 14, 7),
-                   quasi=False, position=False),
+                   quasi=False, position=False,
+                   crew=(CrewMember("TEST-1", "CP"), )),
             Sector(name='6056', reg='G-EZRY', type_='320',
                    from_='AGP', to='BRS',
                    off=datetime.datetime(2022, 7, 23, 15, 0),
                    on=datetime.datetime(2022, 7, 23, 17, 41),
-                   quasi=False, position=False))
-        crew = {
-            datetime.datetime(2022, 7, 23, 11, 44): "TEST-1",
-            datetime.datetime(2022, 7, 23, 15, 0): "TEST-2"
-        }
+                   quasi=False, position=False,
+                   crew=(CrewMember("TEST-2", "CP"), )))
         expected = Duty(
             code=None,
             start=datetime.datetime(2022, 7, 23, 10, 44),
@@ -31,18 +29,16 @@ class TestDuty(unittest.TestCase):
                             from_='BRS', to='AGP',
                             off=datetime.datetime(2022, 7, 23, 11, 44),
                             on=datetime.datetime(2022, 7, 23, 14, 7),
-                            quasi=False, position=False),
+                            quasi=False, position=False,
+                            crew=(CrewMember("TEST-1", "CP"), )),
                      Sector(name='6056', reg='G-EZRY', type_='320',
                             from_='AGP', to='BRS',
                             off=datetime.datetime(2022, 7, 23, 15, 0),
                             on=datetime.datetime(2022, 7, 23, 17, 41),
-                            quasi=False, position=False)),
-            crew=(
-                CrewMember(name='TEST-1', role='CP'),
-                CrewMember(name='TEST-2', role='CP')
+                            quasi=False, position=False,
+                            crew=(CrewMember("TEST-2", "CP"), )))
             )
-        )
-        self.assertEqual(report._duty(sectors, crew), expected)
+        self.assertEqual(report._duty(sectors), expected)
 
 
 class TestSector(unittest.TestCase):
@@ -55,7 +51,8 @@ class TestSector(unittest.TestCase):
                           from_='BRS', to='AGP',
                           off=datetime.datetime(2022, 7, 23, 11, 44),
                           on=datetime.datetime(2022, 7, 23, 14, 7),
-                          quasi=False, position=False)
+                          quasi=False, position=False,
+                          crew=(CrewMember("CAPTAIN THE", "CP"), ))
         self.assertEqual(report._sector(src), expected)
         src = ('', '23/07/22', '6056', 'AGP', '15:00', 'BRS', '17:41',
                '320', 'G-EZRY', '02:41', 'CAPTAIN THE',
@@ -64,7 +61,8 @@ class TestSector(unittest.TestCase):
                           from_='AGP', to='BRS',
                           off=datetime.datetime(2022, 7, 23, 15, 0),
                           on=datetime.datetime(2022, 7, 23, 17, 41),
-                          quasi=False, position=False)
+                          quasi=False, position=False,
+                          crew=(CrewMember("CAPTAIN THE", "CP"), ))
         self.assertEqual(report._sector(src), expected)
 
     def test_over_midnight(self):
@@ -75,5 +73,6 @@ class TestSector(unittest.TestCase):
                           from_='AYT', to='BRS',
                           off=datetime.datetime(2022, 7, 28, 21, 28),
                           on=datetime.datetime(2022, 7, 29, 1, 55),
-                          quasi=False, position=False)
+                          quasi=False, position=False,
+                          crew=(CrewMember("CAPTAIN THE", "CP"), ))
         self.assertEqual(report._sector(src), expected)

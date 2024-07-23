@@ -118,13 +118,16 @@ def efj(duties: tuple[Duty, ...]) -> str:
         if (len(duty.sectors) == 1 and duty.sectors[0].quasi):
             comment = f" #{duty.sectors[0].name}"
         output.append(f"{duty.start:%H%M}/{duty.finish:%H%M}{comment}")
-        if duty.crew:
-            crew = [f"{X.role}:{clean_name(X.name)}" for X in duty.crew]
-            output.append(f"{{ {', '.join(crew)} }}")
         last_airframe = None
+        last_crew = None
         for sector in duty.sectors:
             if sector.position or sector.quasi:
                 continue
+            if sector.crew:
+                crew = [f"{X.role}:{clean_name(X.name)}" for X in sector.crew]
+                if crew != last_crew:
+                    output.append(f"{{ {', '.join(crew)} }}")
+                last_crew = crew
             reg = sector.reg or "?-????"
             type_ = sector.type_ or "???"
             if last_airframe != (reg, type_):
@@ -145,10 +148,10 @@ def csv(duties: tuple[Duty, ...]) -> str:
         extrasaction='ignore')
     writer.writeheader()
     for duty in duties:
-        crew = [CrewMember(clean_name(X[0]), X[1]) for X in duty.crew]
         for sector in duty.sectors:
             if sector.position or sector.quasi:
                 continue
+            crew = [CrewMember(clean_name(X[0]), X[1]) for X in sector.crew]
             out_dict = {
                 'Off Blocks': sector.off,
                 'On Blocks': sector.on,

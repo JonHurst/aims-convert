@@ -36,28 +36,28 @@ class Test_duty(unittest.TestCase):
             code=None,
             start=datetime.datetime(2023, 6, 2, 5, 0),
             finish=datetime.datetime(2023, 6, 2, 16, 1),
-            sectors=(Sector(
-                name='2867', reg=None, type_='320',
-                from_='BRS', to='LIS',
-                off=datetime.datetime(2023, 6, 2, 6, 0),
-                on=datetime.datetime(2023, 6, 2, 8, 36),
-                quasi=False, position=False),
-                     Sector(name='2868', reg=None, type_='320',
-                            from_='LIS', to='BRS',
-                            off=datetime.datetime(2023, 6, 2, 9, 43),
-                            on=datetime.datetime(2023, 6, 2, 12, 4),
-                            quasi=False, position=False),
-                     Sector(name='239', reg=None, type_='320',
-                            from_='BRS', to='NCL',
-                            off=datetime.datetime(2023, 6, 2, 12, 52),
-                            on=datetime.datetime(2023, 6, 2, 13, 58),
-                            quasi=False, position=False),
-                     Sector(name='240', reg=None, type_='320',
-                            from_='NCL', to='BRS',
-                            off=datetime.datetime(2023, 6, 2, 14, 32),
-                            on=datetime.datetime(2023, 6, 2, 15, 31),
-                            quasi=False, position=False)),
-            crew=crew_result)
+            sectors=(
+                Sector(name='2867', reg=None, type_='320',
+                       from_='BRS', to='LIS',
+                       off=datetime.datetime(2023, 6, 2, 6, 0),
+                       on=datetime.datetime(2023, 6, 2, 8, 36),
+                       quasi=False, position=False, crew=crew_result),
+                Sector(name='2868', reg=None, type_='320',
+                       from_='LIS', to='BRS',
+                       off=datetime.datetime(2023, 6, 2, 9, 43),
+                       on=datetime.datetime(2023, 6, 2, 12, 4),
+                       quasi=False, position=False, crew=crew_result),
+                Sector(name='239', reg=None, type_='320',
+                       from_='BRS', to='NCL',
+                       off=datetime.datetime(2023, 6, 2, 12, 52),
+                       on=datetime.datetime(2023, 6, 2, 13, 58),
+                       quasi=False, position=False, crew=crew_result),
+                Sector(name='240', reg=None, type_='320',
+                       from_='NCL', to='BRS',
+                       off=datetime.datetime(2023, 6, 2, 14, 32),
+                       on=datetime.datetime(2023, 6, 2, 15, 31),
+                       quasi=False, position=False, crew=crew_result))
+            )
         self.assertEqual(roster._duty(src), expected)
 
     def test_all_day_event(self):
@@ -68,7 +68,7 @@ class Test_duty(unittest.TestCase):
                (), (), (), (), (), (), (), ())
         expected = Duty(code='D/O',
                         start=datetime.datetime(2023, 6, 4, 0, 0),
-                        finish=None, sectors=(), crew=())
+                        finish=None, sectors=())
         self.assertEqual(roster._duty(src), expected)
 
     def test_loe(self):
@@ -96,7 +96,7 @@ class Test_duty(unittest.TestCase):
                             from_='BRS', to='LGW',
                             off=datetime.datetime(2023, 6, 19, 14, 30),
                             on=datetime.datetime(2023, 6, 19, 18, 0),
-                            quasi=True, position=True),), crew=()),
+                            quasi=True, position=True, crew=()),)),
             Duty(code=None,
                  start=datetime.datetime(2023, 6, 20, 12, 0),
                  finish=datetime.datetime(2023, 6, 20, 18, 30),
@@ -105,7 +105,7 @@ class Test_duty(unittest.TestCase):
                             from_=None, to=None,
                             off=datetime.datetime(2023, 6, 20, 13, 30),
                             on=datetime.datetime(2023, 6, 20, 17, 30),
-                            quasi=True, position=False),), crew=()),
+                            quasi=True, position=False, crew=()),)),
             Duty(code=None, start=datetime.datetime(2023, 6, 21, 8, 0),
                  finish=datetime.datetime(2023, 6, 21, 18, 30),
                  sectors=(
@@ -113,12 +113,12 @@ class Test_duty(unittest.TestCase):
                             from_='LGW', to='LGW',
                             off=datetime.datetime(2023, 6, 21, 9, 30),
                             on=datetime.datetime(2023, 6, 21, 13, 30),
-                            quasi=True, position=False),
+                            quasi=True, position=False, crew=()),
                      Sector(name='TAXI72', reg=None, type_=None,
                             from_='LGW', to='BRS',
                             off=datetime.datetime(2023, 6, 21, 15, 0),
                             on=datetime.datetime(2023, 6, 21, 18, 30),
-                            quasi=True, position=True)), crew=()))
+                            quasi=True, position=True, crew=()))))
         for c in range(3):
             self.assertEqual(roster._duty(src[c]), expected[c])
 
@@ -136,7 +136,7 @@ class Test_duty(unittest.TestCase):
                                    from_=None, to=None,
                                    off=datetime.datetime(2024, 7, 25, 5, 15),
                                    on=datetime.datetime(2024, 7, 25, 13, 15),
-                                   quasi=True, position=False), ), crew=())
+                                   quasi=True, position=False, crew=()), ))
         self.assertEqual(roster._duty(src), expected)
 
     def test_standby_before_flights(self):
@@ -147,7 +147,7 @@ class Test_duty(unittest.TestCase):
                ('14:00',),
                ('11:45 - 13:20', '13:20 - 14:00',
                 'A16:14 - A17:23', 'A17:56 - A18:56'),
-               ('19:26',),  ('02:09',),  ('07:41',),  (),  (), ())
+               ('19:26',),  ('02:09',),  ('07:41',),  (),  crew, ())
         expected = Duty(code=None,
                         start=datetime.datetime(2023, 7, 2, 14, 0),
                         finish=datetime.datetime(2023, 7, 2, 19, 26),
@@ -156,23 +156,27 @@ class Test_duty(unittest.TestCase):
                                    from_='BRS', to='BRS',
                                    off=datetime.datetime(2023, 7, 2, 11, 45),
                                    on=datetime.datetime(2023, 7, 2, 13, 20),
-                                   quasi=True, position=False),
+                                   quasi=True, position=False,
+                                   crew=crew_result),
                             Sector(name='ADTY', reg=None, type_=None,
                                    from_='BRS', to='BRS',
                                    off=datetime.datetime(2023, 7, 2, 13, 20),
                                    on=datetime.datetime(2023, 7, 2, 14, 0),
-                                   quasi=True, position=False),
+                                   quasi=True, position=False,
+                                   crew=crew_result),
                             Sector(name='227', reg=None, type_='319',
                                    from_='BRS', to='BFS',
                                    off=datetime.datetime(2023, 7, 2, 16, 14),
                                    on=datetime.datetime(2023, 7, 2, 17, 23),
-                                   quasi=False, position=False),
+                                   quasi=False, position=False,
+                                   crew=crew_result),
                             Sector(name='228', reg=None, type_='319',
                                    from_='BFS', to='BRS',
                                    off=datetime.datetime(2023, 7, 2, 17, 56),
                                    on=datetime.datetime(2023, 7, 2, 18, 56),
-                                   quasi=False, position=False)),
-                        crew=())
+                                   quasi=False, position=False,
+                                   crew=crew_result))
+                        )
         self.assertEqual(roster._duty(src), expected)
 
     def test_over_midnight(self):
@@ -192,23 +196,27 @@ class Test_duty(unittest.TestCase):
                                    from_='BRS', to='NCL',
                                    off=datetime.datetime(2023, 6, 25, 15, 24),
                                    on=datetime.datetime(2023, 6, 25, 16, 19),
-                                   quasi=False, position=False),
+                                   quasi=False, position=False,
+                                   crew=crew_result),
                             Sector(name='240', reg=None, type_='320',
                                    from_='NCL', to='BRS',
                                    off=datetime.datetime(2023, 6, 25, 17, 27),
                                    on=datetime.datetime(2023, 6, 25, 18, 41),
-                                   quasi=False, position=False),
+                                   quasi=False, position=False,
+                                   crew=crew_result),
                             Sector(name='2873', reg=None, type_='320',
                                    from_='BRS', to='FAO',
                                    off=datetime.datetime(2023, 6, 25, 19, 21),
                                    on=datetime.datetime(2023, 6, 25, 21, 56),
-                                   quasi=False, position=False),
+                                   quasi=False, position=False,
+                                   crew=crew_result),
                             Sector(name='2874', reg=None, type_='320',
                                    from_='FAO', to='BRS',
                                    off=datetime.datetime(2023, 6, 25, 22, 33),
                                    on=datetime.datetime(2023, 6, 26, 0, 57),
-                                   quasi=False, position=False)),
-                        crew=crew_result)
+                                   quasi=False, position=False,
+                                   crew=crew_result))
+                        )
         self.assertEqual(roster._duty(src), expected)
 
     def test_not_published(self):

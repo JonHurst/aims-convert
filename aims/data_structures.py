@@ -2,6 +2,11 @@ from typing import NamedTuple, Optional
 import datetime as dt
 
 
+class CrewMember(NamedTuple):
+    name: str
+    role: str
+
+
 class Sector(NamedTuple):
     name: str
     reg: Optional[str]
@@ -12,11 +17,7 @@ class Sector(NamedTuple):
     on: dt.datetime
     quasi: bool
     position: bool
-
-
-class CrewMember(NamedTuple):
-    name: str
-    role: str
+    crew: tuple[CrewMember, ...]
 
 
 class Duty(NamedTuple):
@@ -24,7 +25,6 @@ class Duty(NamedTuple):
     start: dt.datetime
     finish: Optional[dt.datetime]  # all day event has None
     sectors: tuple[Sector, ...]
-    crew: tuple[CrewMember, ...]
 
 
 class RosterException(Exception):

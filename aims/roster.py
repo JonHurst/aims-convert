@@ -35,6 +35,16 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
             type_ = code_split[1][1:-1]
         airports = [X.strip() for X in data[DETAILS][c].split(" - ")]
         times = data[TIMES][c].split("/")[0].split(" - ")
+        crew = []
+        for m in data[CREW]:
+            strings = m.split(" - ")
+            if len(strings) >= 3:
+                if strings[1] == "PAX":
+                    continue
+                crew.append(CrewMember(strings[-1], strings[0]))
+            else:
+                crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
+                                      crew[-1].role)
         if len(airports) == 2:  # Not an all day event or unused standby
             position = False
             if airports[0][0] == "*":  # Either ground or air positioning
@@ -45,13 +55,13 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
                 Sector(name, None, type_, airports[0], airports[1],
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date),
-                       quasi, position))
+                       quasi, position, tuple(crew)))
         else:
             retval.append(
                 Sector(name, None, None, None, None,
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date),
-                       True, False))
+                       True, False, tuple(crew)))
     return tuple(retval)
 
 
@@ -64,7 +74,7 @@ def _duty(row: Row) -> Optional[Duty]:
         if not row[TIMES]:
             return Duty(row[CODES][0],
                         dt.datetime.combine(date, dt.time()),
-                        None, (), ())
+                        None, ())
         # If duty start/finish does not exist, take the times from
         # the only sector. Details will be recorded in Duty.sectors.
         if row[DSTART]:
@@ -75,19 +85,8 @@ def _duty(row: Row) -> Optional[Duty]:
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
             end = _convert_timestring(times[1], date)
-        crew = []
-        for m in row[CREW]:
-            strings = m.split(" - ")
-            if len(strings) >= 3:
-                if strings[1] == "PAX":
-                    continue
-                crew.append(CrewMember(strings[-1], strings[0]))
-            else:
-                crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
-                                      crew[-1].role)
         return Duty(None, start, end,
-                    _sectors(row, date),
-                    tuple(crew))
+                    _sectors(row, date))
     except (IndexError, ValueError):
         raise InputFileException(f"Bad Record: {str(row)}")
 
