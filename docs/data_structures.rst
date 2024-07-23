@@ -55,6 +55,11 @@ Data Structures
 
    A flag indicating that the sector was either ground or air positioning.
 
+   .. attribute:: crew
+      :type: tuple[CrewMember, ...]
+
+   A (possibly empty} tuple of :class:`CrewMember` objects, representing all the
+   crew members that were involved in the duty.
 
 
 .. class:: Duty
@@ -82,13 +87,6 @@ Data Structures
       :type: tuple[Sector, ...]
 
    A (possibly empty) tuple of :class:`Sector` objects that are part of the duty.
-
-   .. attribute:: crew
-      :type: tuple[CrewMember, ...]
-
-   A (possibly empty} tuple of :class:`CrewMember` objects, representing all the
-   crew members that were involved in the duty. While this would make more sense
-   on a Sector by Sector basis, the input only lists crew for the entire duty.
 
 .. class:: CrewMember
 
