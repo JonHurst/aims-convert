@@ -85,8 +85,14 @@ def _duty(row: Row) -> Optional[Duty]:
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
             end = _convert_timestring(times[1], date)
-        return Duty(None, start, end,
-                    _sectors(row, date))
+        sectors = _sectors(row, date)
+        # on duty can be before report if quasi sectors at start
+        for sector in sectors:
+            if not sector.quasi:
+                break
+            start = min(start, sector.off)
+            end = max(end, sector.on)
+        return Duty(None, start, end, sectors)
     except (IndexError, ValueError):
         raise InputFileException(f"Bad Record: {str(row)}")
 

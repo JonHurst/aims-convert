@@ -144,12 +144,12 @@ class Test_duty(unittest.TestCase):
                ('02/07/2023 Sun',),
                ('LSBY', 'ADTY', '227 [319]', '228 [319]'),
                ('BRS  - BRS', 'BRS  - BRS', 'BRS  - BFS', 'BFS  - BRS'),
-               ('14:00',),
+               ('14:00',),  # note this is after 11:45!
                ('11:45 - 13:20', '13:20 - 14:00',
                 'A16:14 - A17:23', 'A17:56 - A18:56'),
                ('19:26',),  ('02:09',),  ('07:41',),  (),  crew, ())
         expected = Duty(code=None,
-                        start=datetime.datetime(2023, 7, 2, 14, 0),
+                        start=datetime.datetime(2023, 7, 2, 11, 45),
                         finish=datetime.datetime(2023, 7, 2, 19, 26),
                         sectors=(
                             Sector(name='LSBY', reg=None, type_=None,
