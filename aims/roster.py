@@ -1,7 +1,4 @@
-#!/usr/bin/python3
 import datetime as dt
-from bs4 import BeautifulSoup  # type: ignore
-import sys
 from typing import Optional
 
 from aims.data_structures import Duty, Sector, CrewMember, InputFileException
@@ -115,21 +112,3 @@ def duties(soup) -> tuple[Duty, ...]:
     except (StopIteration, IndexError):
         raise InputFileException("Duty table ended unexpectedly")
     return tuple(retval)
-
-
-def test():
-    soup = BeautifulSoup(sys.stdin.read(), "html5lib")
-    for d in duties(soup):
-        if not d.finish:
-            print("ADE: ", d.start, d.code)
-            continue
-        print("DUTY: ", d.start, d.finish)
-        for c in d.crew:
-            print("  ", c.role, ":", c.name)
-        for s in d.sectors:
-            print("  ", s.name, s.off, s.from_ or "", s.to or "", s.on,
-                  "Q" if s.quasi else "", "P" if s.position else "")
-
-
-if __name__ == "__main__":
-    test()

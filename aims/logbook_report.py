@@ -1,7 +1,4 @@
-#!/usr/bin/python3
 import datetime as dt
-from bs4 import BeautifulSoup  # type: ignore
-import sys
 import re
 from typing import Optional
 
@@ -58,12 +55,3 @@ def duties(soup) -> tuple[Duty, ...]:
             groups[-1].append(sector)
         last_on = sector.on
     return tuple(_duty(tuple(X)) for X in groups)
-
-
-if __name__ == "__main__":
-    soup = BeautifulSoup(sys.stdin.read(), "html5lib")
-    for d in duties(soup):
-        print(d.start, d.finish)
-        for s in d.sectors:
-            print("    ", s)
-        print("----")
