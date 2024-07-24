@@ -109,15 +109,21 @@ def _duty(row: Row) -> Optional[Duty]:
        call out.
 
     5: Sector times of the form "11:00 - 13:00", one for each sector in the
-       duty, including for quasi sectors. An empty tuple for all day duties.
+       duty, including for quasi sectors. For duties that have already taken
+       place, the fact that the times are actual times may be indicated with an
+       "A", giving the form "A11:00 - A13:00", although this doesn't seem to be
+       especially consistently done. The string for the last sector may also
+       incorporate the delay in the form "A11:00 - A13:00/01:00". For an all
+       day duty there are no times to record, and hence the cell will be an
+       empty tuple.
 
-    6  Duty end time. Empty for standby without callout.
+    6: Duty end time. Empty for standby without callout.
 
-    7:  Block hours
+    7: Block hours
 
-    8:  Duty hours
+    8: Duty hours
 
-    9:  Markers for memos etc.
+    9: Markers for memos etc.
 
     10: Crew list, one string per crew member. The crew is associated with the
         entire duty rather than per sector.
