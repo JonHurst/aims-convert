@@ -69,32 +69,62 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
 
 
 def _duty(row: Row) -> Optional[Duty]:
-    """Process a stringified row of the HTML table into the Duty it represents.
+    """Creates a Duty object from a structured representation of an HTML row.
 
-    Each row is a 12 item tuple. The first and last items are empty tuples
-    since the original table has empty cells at the beginning and end of the
-    row. In between these are tuples of strings; these come from splitting the
-    strings in the original cells on newlines.
+    The input object is a 12 cell tuple with each cell containing the contents
+    of a "td" from the original HTML row. The contents are in the form of a
+    variable length tuple of strings since the original contents of the cells
+    can be multi-line. The first and last items are empty tuples since the
+    original table has empty cells at the beginning and end of each row.
 
     The items in the row, from index 1 to index 10 are:
 
-        1:  Date
-        2:  Flight numbers plus aircraft type in square brackets or
-            quasi sector type code (e.g. standby, taxi, ...)
-        3:  Routes or description of quasi sector or all day duty
-        4:  Report time. This is not necessarily duty start time -- there may
-            be standby duties before report, and it is empty for standbys
-            without a call out.
-        5:  Sector times, including for quasi sectors. Empty for all day.
-        6:  Duty end time. Empty for standby without callout.
-        7:  Block hours
-        8:  Duty hours
-        9:  Markers for memos etc.
-        10: Crew list. This is one of the weaknesses of this format -- the crew
-            is associated with the entire duty rather than for each sector.
+    1: Date of the form "01/01/2000 Mon", which may be split over two lines at
+       the space.
+
+    2: Either:
+
+       + An empty tuple for an unpublished duty; or
+
+       + For all day duties, the code for the all day duty; or
+
+       + For normal sectors, the flight number plus aircraft type in square
+         brackets e.g. "1234 [320]", one for each sector in the duty; or
+
+       + For quasi sectors, the code of the quasi sector (e.g. "ESBY", "ADTY",
+         "TAXI123"), one for each quasi sector in the duty. These can be mixed
+         in with normal sectors.
+
+    3: Either:
+
+       + For all day duties, a textual description of the duty; or
+
+       + For sectors, the airports invloved in the form "BRS - FNC", one for
+         each sector or quasi sector in the duty. For quasi sectors the two
+         airports may be the same (e.g. "LGW - LGW" for a sim) or, to indicate
+         postioning, may start with a "*" (e.g "*LGW - BRS" for a taxi ride).
+
+    4: Report time. This is not necessarily duty start time -- there may be
+       standby duties before report, and it is empty for standbys without a
+       call out.
+
+    5: Sector times of the form "11:00 - 13:00", one for each sector in the
+       duty, including for quasi sectors. An empty tuple for all day duties.
+
+    6  Duty end time. Empty for standby without callout.
+
+    7:  Block hours
+
+    8:  Duty hours
+
+    9:  Markers for memos etc.
+
+    10: Crew list, one string per crew member. The crew is associated with the
+        entire duty rather than per sector.
 
     :param row: A 12 cell tuple, with each cell a tuple of strings.
     :return: The Duty object represented by the row.
+
     """
     try:
         if not row[CODES]:
@@ -105,12 +135,12 @@ def _duty(row: Row) -> Optional[Duty]:
             return Duty(row[CODES][0],
                         dt.datetime.combine(date, dt.time()),
                         None, ())
-        # If duty start/finish does not exist, take the times from
-        # the only sector. Details will be recorded in Duty.sectors.
         if row[DSTART]:
             start = _convert_timestring(row[DSTART][0], date)
             end = _convert_timestring(row[DEND][0], date)
         else:
+            # If duty start/finish does not exist, take the times from
+            # the only sector.
             assert len(row[TIMES]) == 1
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
@@ -130,11 +160,16 @@ def _duty(row: Row) -> Optional[Duty]:
 def duties(soup) -> tuple[Duty, ...]:
     """Create a tuple of Duty objects from a BeautifulSoup of a roster.
 
-    The important part of the roster is in the form of a large HTML table, with
-    each row of the table representing a single duty. Whilst the header is a
-    date, if duties continue past midnight, those times are marked with a
-    superscript '+1' rather than being pushed to the next day, which makes it
-    much saner to parse than the alternatives.
+    The entire document is a single table (how retro!). The interesting part
+    starts with the row two rows below the row with a cell containing the
+    phrase "Schedule Details" and ends with the row above the first row with a
+    blank date field. Each row between these represents a single duty.
+
+    The date to the left of each row is the date that the duty started on. If
+    duties continue past midnight, relevant times are marked with a superscript
+    '+1' rather than being pushed to the next row of the table. This makes the
+    vertical roster much saner to parse than the alternatives since there are
+    no concerns about missing data at the start and end of the roster period.
 
     :param soup: The soup of a 'vertical' HTML AIMS roster, as produced by
                processing the HTML with BeautifulSoup.
