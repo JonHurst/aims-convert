@@ -54,7 +54,8 @@ def _crew(strings: tuple[str, ...]) -> tuple[CrewMember, ...]:
     crew: list[CrewMember] = []
     for j in joined_strings:
         fields = j.split(" - ")
-        assert len(fields) >= 3
+        if len(fields) < 3:
+            raise InputFileException("Bad crew block")
         if fields[1] != "PAX":
             crew.append(CrewMember(fields[-1], fields[0]))
     return tuple(crew)
