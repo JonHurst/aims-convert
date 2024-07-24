@@ -5,6 +5,7 @@ produced by processing the roster with BeautifulSoup.
 """
 
 import datetime as dt
+import re
 from typing import Optional
 
 from aims.data_structures import Duty, Sector, CrewMember, InputFileException
@@ -28,6 +29,37 @@ def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
     return dt.datetime.combine(date, time)
 
 
+def _crew(strings: tuple[str, ...]) -> tuple[CrewMember, ...]:
+    """Convert crew cell to a tuple of CrewMember objects.
+
+    Each string may either represent a crew member or be a continuation of a
+    crew member's name if the details didn't all fit on one line. In the first
+    case the line will start with "CP -", "FO -" etc. The line is split on a
+    space if it is split.
+
+    For postioning crew, the string has the form "CP - PAX - 1234 - NAME MY".
+    Positioning crew should not be included in the crew list.
+
+    :param strings: The tuple of strings from the crew field of a duty record.
+    :return: A tuple of CrewMember objects.
+
+    """
+    re_first = re.compile(r"[A-Z]{2} - ")
+    joined_strings: list[str] = []
+    for s in strings:
+        if re_first.match(s):
+            joined_strings.append(s)
+        else:
+            joined_strings[-1] += f" {s}"
+    crew: list[CrewMember] = []
+    for j in joined_strings:
+        fields = j.split(" - ")
+        assert len(fields) >= 3
+        if fields[1] != "PAX":
+            crew.append(CrewMember(fields[-1], fields[0]))
+    return tuple(crew)
+
+
 def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     retval = []
     for c, code in enumerate(data[CODES]):
@@ -38,16 +70,7 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
             type_ = code_split[1][1:-1]
         airports = [X.strip() for X in data[DETAILS][c].split(" - ")]
         times = data[TIMES][c].split("/")[0].split(" - ")
-        crew = []
-        for m in data[CREW]:
-            strings = m.split(" - ")
-            if len(strings) >= 3:
-                if strings[1] == "PAX":
-                    continue
-                crew.append(CrewMember(strings[-1], strings[0]))
-            else:
-                crew[-1] = CrewMember(crew[-1].name + " " + strings[0],
-                                      crew[-1].role)
+        crew = _crew(data[CREW])
         if len(airports) == 2:  # Not an all day event or unused standby
             position = False
             if airports[0][0] == "*":  # Either ground or air positioning

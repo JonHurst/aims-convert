@@ -9,7 +9,8 @@ from aims.data_structures import (
 crew = ('CP - 0000 - CAPTAIN THE',
         'FO - 0001 - FO THE',
         'PU - 8000 - PU THE',
-        'FA - 8001 - FA A')
+        'FA - 8001 - FA', 'A',
+        'FA - PAX - 8002 - POSITIONER')
 
 crew_result = (
     CrewMember(name='CAPTAIN THE', role='CP'),
