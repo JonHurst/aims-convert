@@ -10,7 +10,7 @@ import aims.parse
 from aims.data_structures import RosterException, InputFileException
 from aims.output import csv, ical, efj
 
-VERSION = "2.0"
+VERSION = "2.1"
 
 SETTINGS_FILE = os.path.expanduser("~/.aimsgui")
 
