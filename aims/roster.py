@@ -25,7 +25,8 @@ def _convert_timestring(in_: str, date: dt.date) -> dt.datetime:
     if in_[-2:] == "⁺¹":
         in_ = in_[:-2]
         date = date + dt.timedelta(1)
-    time = dt.datetime.strptime(in_.replace("A", ""), "%H:%M").time()
+    in_ = in_.replace("A", "").replace("E", "")
+    time = dt.datetime.strptime(in_, "%H:%M").time()
     return dt.datetime.combine(date, time)
 
 
