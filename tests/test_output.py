@@ -156,6 +156,9 @@ class TestRoster(unittest.TestCase):
             "21/06/2023 14:30-16:00 Debrief 0:00/1:30\n"
             "21/06/2023 16:00-19:30 TAXI72 0:00/3:30")
 
+    def test_empty(self):
+        self.assertEqual(roster(()), "")
+
 
 class TestEFJ(unittest.TestCase):
 
@@ -194,3 +197,6 @@ class TestEFJ(unittest.TestCase):
             "\n"
             "2023-06-21\n"
             "0800/1830\n")
+
+    def test_empty(self):
+        self.assertEqual(efj(()), "")
