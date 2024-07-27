@@ -9,7 +9,7 @@
 project = 'aims-convert'
 copyright = '2024, Jon Hurst'
 author = 'Jon Hurst'
-release = '1.2'
+release = '2.1'
 
 import os
 import sys

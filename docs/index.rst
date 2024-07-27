@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-aims-convert documentation
-===========================
+aims-convert (version |release|) documentation
+==============================================
 
 This is a tool for extracting information from an AIMS detailed roster. It has
 been developed against rosters downloaded from easyJet's version of AIMS, so may
