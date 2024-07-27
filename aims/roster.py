@@ -78,7 +78,10 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
             if airports[0][0] == "*":  # Either ground or air positioning
                 airports[0] = airports[0][1:]
                 position = True
-            quasi = not type_  # If no type in code, assume quasi sector
+            quasi = False
+            if not type_:  # If no type in code, assume quasi sector
+                quasi = True
+                crew = ()
             retval.append(
                 Sector(name, None, type_, airports[0], airports[1],
                        _convert_timestring(times[0], date),
