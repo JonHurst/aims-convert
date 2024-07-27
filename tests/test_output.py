@@ -88,6 +88,47 @@ standby_before_flight = Duty(
                crew=crew)))
 
 
+loe_day1 = Duty(
+    code=None,
+    start=datetime.datetime(2023, 6, 19, 14, 30),
+    finish=datetime.datetime(2023, 6, 19, 18, 0),
+    sectors=(
+        Sector(name='TAXI227', reg=None, type_=None,
+               from_='BRS', to='LGW',
+               off=datetime.datetime(2023, 6, 19, 14, 30),
+               on=datetime.datetime(2023, 6, 19, 18, 0),
+               quasi=True, position=True, crew=()),))
+
+
+loe_day2 = Duty(
+    code=None,
+    start=datetime.datetime(2023, 6, 20, 12, 0),
+    finish=datetime.datetime(2023, 6, 20, 18, 30),
+    sectors=(
+        Sector(name='LOE', reg=None, type_=None,
+               from_=None, to=None,
+               off=datetime.datetime(2023, 6, 20, 13, 30),
+               on=datetime.datetime(2023, 6, 20, 17, 30),
+               quasi=True, position=False, crew=()),))
+
+
+loe_day3 = Duty(
+    code=None,
+    start=datetime.datetime(2023, 6, 21, 8, 0),
+    finish=datetime.datetime(2023, 6, 21, 18, 30),
+    sectors=(
+        Sector(name='FFST', reg=None, type_=None,
+               from_='LGW', to='LGW',
+               off=datetime.datetime(2023, 6, 21, 9, 30),
+               on=datetime.datetime(2023, 6, 21, 13, 30),
+               quasi=True, position=False, crew=()),
+        Sector(name='TAXI72', reg=None, type_=None,
+               from_='LGW', to='BRS',
+               off=datetime.datetime(2023, 6, 21, 15, 0),
+               on=datetime.datetime(2023, 6, 21, 18, 30),
+               quasi=True, position=True, crew=())))
+
+
 class TestRoster(unittest.TestCase):
 
     def test_standard(self):
@@ -102,3 +143,15 @@ class TestRoster(unittest.TestCase):
             "02/07/2023 12:45-14:20 LSBY 0:00/1:35\n"
             "02/07/2023 14:20-15:00 ADTY 0:00/0:40\n"
             "02/07/2023 15:00-20:26 BRS-BFS-BRS 2:09/5:26")
+
+    def test_loe(self):
+        self.assertEqual(
+            roster((loe_day1, loe_day2, loe_day3)),
+            "19/06/2023 15:30-19:00 TAXI227 0:00/3:30\n"
+            "20/06/2023 13:00-14:30 Brief 0:00/1:30\n"
+            "20/06/2023 14:30-18:30 LOE 0:00/4:00\n"
+            "20/06/2023 18:30-19:30 Debrief 0:00/1:00\n"
+            "21/06/2023 09:00-10:30 Brief 0:00/1:30\n"
+            "21/06/2023 10:30-14:30 FFST 0:00/4:00\n"
+            "21/06/2023 14:30-16:00 Debrief 0:00/1:30\n"
+            "21/06/2023 16:00-19:30 TAXI72 0:00/3:30")
