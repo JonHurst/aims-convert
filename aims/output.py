@@ -55,24 +55,27 @@ def _night(sector: Sector) -> tuple[int, bool]:
     return (round(night_duration), night_landing)
 
 
+def _build_roster_string(start, end, block, string):
+    start, end = [X.replace(tzinfo=UTC).astimezone(LT)
+                  for X in (start, end)]
+    duration = int((end - start).total_seconds()) // 60
+    duration_str = f"{duration // 60}:{duration % 60:02d}"
+    block_str = f"{block // 60}:{block % 60:02d}"
+    return (f"{start:%d/%m/%Y %H:%M}-{end:%H:%M} "
+            f"{string} {block_str}/{duration_str}")
+
+
 def _roster_quasi(
         qsectors: tuple[Sector, ...],
         cursor: dt.datetime
 ) -> tuple[tuple[str, ...], dt.datetime]:
-    def make_str(start, end, name):
-        start, end = [X.replace(tzinfo=UTC).astimezone(LT)
-                      for X in (start, end)]
-        duration = int((end - start).total_seconds()) // 60
-        duration_str = f"{duration // 60}:{duration % 60:02d}"
-        return (f"{start:%d/%m/%Y %H:%M}-{end:%H:%M} "
-                f"{name} 0:00/{duration_str}")
     retval: list[str] = []
     name = "Brief"
     for s in qsectors:
         if cursor < s.off:
-            retval.append(make_str(cursor, s.off, name))
+            retval.append(_build_roster_string(cursor, s.off, 0, name))
             name = "Debrief"
-        retval.append(make_str(s.off, s.on, s.name))
+        retval.append(_build_roster_string(s.off, s.on, 0, s.name))
         cursor = s.on
     return (tuple(retval), cursor)
 
@@ -84,7 +87,7 @@ def _roster_real(
     assert sectors[0].from_
     airports: list[str] = [sectors[0].from_]
     block = 0
-    utc_start = cursor
+    start = cursor
     for sector in sectors:
         if sector.position:
             airports.append("[psn]")
@@ -93,13 +96,9 @@ def _roster_real(
         assert sector.to
         airports.append(sector.to)
     cursor = sectors[-1].on + dt.timedelta(minutes=30)
-    start, end = [X.replace(tzinfo=UTC).astimezone(LT)
-                  for X in (utc_start, cursor)]
-    duration = int((end - start).total_seconds()) // 60
-    duration_str = f"{duration // 60}:{duration % 60:02d}"
-    block_str = f"{block // 60}:{block % 60:02d}"
-    return (f"{start:%d/%m/%Y %H:%M}-{end:%H:%M} "
-            f"{'-'.join(airports)} {block_str}/{duration_str}", cursor)
+    return (
+        _build_roster_string(start, cursor, block, '-'.join(airports)),
+        cursor)
 
 
 def roster(duties: tuple[Duty, ...]) -> str:
@@ -116,12 +115,8 @@ def roster(duties: tuple[Duty, ...]) -> str:
                 new, cursor = _roster_real(tuple(g), cursor)
                 output.append(new)
         if cursor < duty.finish:
-            start, end = [X.replace(tzinfo=UTC).astimezone(LT)
-                          for X in (cursor, duty.finish)]
-            duration = int((end - start).total_seconds()) // 60
-            duration_str = f"{duration // 60}:{duration % 60:02d}"
-            output.append(f"{start:%d/%m/%Y %H:%M}-{end:%H:%M} "
-                          f"Debrief 0:00/{duration_str}")
+            output.append(
+                _build_roster_string(cursor, duty.finish, 0, "Debrief"))
     return "\n".join(output)
 
 
