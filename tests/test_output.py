@@ -172,3 +172,25 @@ class TestEFJ(unittest.TestCase):
             "NCL/BRS 1432/1531\n\n"
             "2024-07-25\n"
             "0515/1315 #ESBY\n")
+
+    def test_standby_before_flight(self):
+        self.assertEqual(
+            efj((standby_before_flight, )),
+            "2023-07-02\n"
+            "1145/1926\n"
+            "{ CP:Captain The, FO:Fo The, PU:Pu The, FA:Fa A }\n"
+            "?-????:319\n"
+            "BRS/BFS 1614/1723\n"
+            "BFS/BRS 1756/1856\n")
+
+    def test_loe(self):
+        self.assertEqual(
+            efj((loe_day1, loe_day2, loe_day3)),
+            "2023-06-19\n"
+            "1430/1800 #TAXI227\n"
+            "\n"
+            "2023-06-20\n"
+            "1200/1830 #LOE\n"
+            "\n"
+            "2023-06-21\n"
+            "0800/1830\n")
