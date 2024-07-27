@@ -1,7 +1,7 @@
 import unittest
 import datetime
 
-from aims.output import roster
+from aims.output import roster, efj
 from aims.data_structures import Duty, Sector, CrewMember
 
 
@@ -155,3 +155,20 @@ class TestRoster(unittest.TestCase):
             "21/06/2023 10:30-14:30 FFST 0:00/4:00\n"
             "21/06/2023 14:30-16:00 Debrief 0:00/1:30\n"
             "21/06/2023 16:00-19:30 TAXI72 0:00/3:30")
+
+
+class TestEFJ(unittest.TestCase):
+
+    def test_standard(self):
+        self.assertEqual(
+            efj((standard_duty, all_day_duty, standby_duty)),
+            "2023-06-02\n"
+            "0500/1601\n"
+            "{ CP:Captain The, FO:Fo The, PU:Pu The, FA:Fa A }\n"
+            "?-????:320\n"
+            "BRS/LIS 0600/0836\n"
+            "LIS/BRS 0943/1204\n"
+            "BRS/NCL 1252/1358\n"
+            "NCL/BRS 1432/1531\n\n"
+            "2024-07-25\n"
+            "0515/1315 #ESBY\n")
