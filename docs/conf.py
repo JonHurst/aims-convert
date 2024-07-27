@@ -9,7 +9,7 @@
 project = 'aims-convert'
 copyright = '2024, Jon Hurst'
 author = 'Jon Hurst'
-release = '2.1'
+version = '2.1'
 
 import os
 import sys
@@ -30,3 +30,5 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_theme_options = {
+    'display_version': True }
