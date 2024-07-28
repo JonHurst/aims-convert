@@ -34,4 +34,7 @@ setuptools.setup(
         "console_scripts": ["aims = aims.cli:main"],
         "gui_scripts" : ["aimsgui = aims.gui:main"]
     },
+    extras_require={
+        "unit_tests": ["freezegun"]
+    },
 )

@@ -1,5 +1,6 @@
 import unittest
 import datetime
+from freezegun import freeze_time
 
 from aims.output import roster, efj, ical
 from aims.data_structures import Duty, Sector, CrewMember, AllDayEvent
@@ -190,21 +191,8 @@ class TestEFJ(unittest.TestCase):
         self.assertEqual(efj(()), "")
 
 
-class patch_datetime(datetime.datetime):
-
-    @staticmethod
-    def utcnow():
-        return datetime.datetime(2024, 1, 1)
-
-
+@freeze_time("2024-01-01")
 class Test_ical(unittest.TestCase):
-
-    def setUp(self):
-        self.old = datetime.datetime
-        datetime.datetime = patch_datetime
-
-    def tearDown(self):
-        datetime.datetime = self.old
 
     def test_standard(self):
         expected = ("BEGIN:VCALENDAR\r\n"
