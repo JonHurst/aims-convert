@@ -5,6 +5,7 @@ import argparse
 
 from aims.parse import parse
 import aims.output as output
+from aims.version import VERSION
 
 
 def _args():
@@ -12,13 +13,16 @@ def _args():
         description=(
             'Process an AIMS detailed roster into various useful formats.'))
     parser.add_argument('format',
-                        choices=['roster', 'efj', 'csv', 'ical'])
+                        choices=['roster', 'efj', 'csv', 'ical', 'version'])
     parser.add_argument('--ade', action="store_true")
     return parser.parse_args()
 
 
 def main() -> int:
     args = _args()
+    if args.format == "version":
+        print(f"Version: {VERSION}")
+        return 0
     duties, ade = parse(sys.stdin.read())
     if args.format == "roster":
         print(output.roster(duties))

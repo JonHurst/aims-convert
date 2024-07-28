@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aims-convert",
-    version="2.1",
+    version="2.2",
     author="Jon Hurst",
     author_email="jon.a@hursts.org.uk",
     description="Extract useful information from AIMS",

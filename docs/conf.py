@@ -5,11 +5,11 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-
+from aims.version import VERSION
 project = 'aims-convert'
 copyright = '2024, Jon Hurst'
 author = 'Jon Hurst'
-version = '2.1'
+version = VERSION
 
 import os
 import sys
