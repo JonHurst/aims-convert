@@ -1,8 +1,8 @@
 import unittest
 import datetime
 
-from aims.output import roster, efj
-from aims.data_structures import Duty, Sector, CrewMember
+from aims.output import roster, efj, ical
+from aims.data_structures import Duty, Sector, CrewMember, AllDayEvent
 
 
 crew = (
@@ -188,3 +188,56 @@ class TestEFJ(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(efj(()), "")
+
+
+class patch_datetime(datetime.datetime):
+
+    @staticmethod
+    def utcnow():
+        return datetime.datetime(2024, 1, 1)
+
+
+class Test_ical(unittest.TestCase):
+
+    def setUp(self):
+        self.old = datetime.datetime
+        datetime.datetime = patch_datetime
+
+    def tearDown(self):
+        datetime.datetime = self.old
+
+    def test_standard(self):
+        expected = ("BEGIN:VCALENDAR\r\n"
+                    "VERSION:2.0\r\n"
+                    "PRODID:hursts.org.uk\r\n"
+                    "BEGIN:VEVENT\r\n"
+                    "UID:2023-06-02T05:00:00BRSLISBRSNCLBRS@HURSTS.ORG.UK\r\n"
+                    "DTSTAMP:20240101T000000Z\r\n"
+                    "DTSTART:20230602T050000Z\r\n"
+                    "DTEND:20230602T160100Z\r\n"
+                    "SUMMARY:BRS-LIS-BRS-NCL-BRS\r\n"
+                    "DESCRIPTION:06:00z-08:36z 2867 BRS/LIS \\n\r\n"
+                    " 09:43z-12:04z 2868 LIS/BRS \\n\r\n"
+                    " 12:52z-13:58z 239 BRS/NCL \\n\r\n"
+                    " 14:32z-15:31z 240 NCL/BRS \r\n"
+                    "LAST-MODIFIED:20240101T000000Z\r\n"
+                    "END:VEVENT\r\n"
+                    "END:VCALENDAR\r\n")
+        self.assertEqual(ical((standard_duty, ), ()), expected)
+
+    def test_all_day_event(self):
+        expected = ("BEGIN:VCALENDAR\r\n"
+                    "VERSION:2.0\r\n"
+                    "PRODID:hursts.org.uk\r\n"
+                    "BEGIN:VEVENT\r\n"
+                    "UID:2024-01-02P/T@HURSTS.ORG.UK\r\n"
+                    "DTSTAMP:20240101T000000Z\r\n"
+                    "DTSTART;VALUE=DATE:20240102\r\n"
+                    "SUMMARY:P/T\r\n"
+                    "TRANSP:TRANSPARENT\r\n"
+                    "LAST-MODIFIED:20240101T000000Z\r\n"
+                    "END:VEVENT\r\n"
+                    "END:VCALENDAR\r\n")
+        self.assertEqual(
+            ical((), (AllDayEvent(datetime.date(2024, 1, 2), "P/T"), )),
+            expected)
