@@ -17,13 +17,14 @@ Output Functions
    :return: Text with the eFJ scheme
 
 
-.. function:: ical(duties: tuple[Duty, ...], do_ade: bool) -> str
+.. function:: ical(duties: tuple[Duty, ...], ade: tuple[AllDayEvent, ...]) -> str
 
    Transform to `iCalendar format  <https://icalendar.org>`_.
 
    :param duties: A tuple of :class:`aims.data_structures.Duty` objects, as output by
                    :func:`aims.parse.parse`.
-   :param do_ade: If True, include add day events in the output.
+   :param ade: A tuple of :class:`aims.data_structures.AllDayEvent` objects, as
+               output by :func:`aims.parse.parse`.
    :return: Text in iCalendar format
 
 

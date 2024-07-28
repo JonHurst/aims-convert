@@ -13,6 +13,15 @@ Processing Functions
                 BeautifulSoup4.
    :return: A tuple of :class:`aims.data_structures.Duty` objects.
 
+.. function:: all_day_events(soup) -> tuple[AllDayEvent, ...]
+
+   Create a tuple of :class:`aims.data_structures.AllDayEvent` objects extracted
+   from an vertical AIMS Crew Schedule.
+
+   :param soup: The soup of the Crew Schedule, as created by parsing the html with
+                BeautifulSoup4.
+   :return: A tuple of :class:`aims.data_structures.AllDayEvent` objects.
+
 .. currentmodule:: aims.logbook_report
 
 .. function:: duties(soup) -> tuple[Duty, ...]
@@ -26,7 +35,7 @@ Processing Functions
 
 .. currentmodule:: aims.parse
 
-.. function:: parse(html: str) -> tuple[Duty, ...]
+.. function:: parse(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]
 
    Do some basic checks on the HTML, then attempt to identify whether it is an
    AIMS Crew Schedule or an AIMS Pilot Logbook report. If identification is
@@ -34,4 +43,5 @@ Processing Functions
    :func:`duties` function.
 
    :param str html: The text of the HTML file being processed.
-   :return: A tuple of :class:`aims.data_structures.Duty` objects.
+   :return: A tuple of :class:`aims.data_structures.Duty` objects and
+      a tuple of :class:`aims.data_structures.AllDayEvent` objects

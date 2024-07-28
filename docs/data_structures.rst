@@ -66,11 +66,6 @@ Data Structures
 
    A NamedTuple representing a duty
 
-   .. attribute:: code
-      :type: Optional[str]
-
-   The name of an all day event, if applicable.
-
    .. attribute:: start
       :type: datetime.datetime
 
@@ -79,7 +74,7 @@ Data Structures
    all day event.
 
    .. attribute:: finish
-      :type: Optional[datetime.datetime]
+      :type: datetime.datetime
 
    The finish time for a duty. None for an all day event
 
@@ -101,3 +96,17 @@ Data Structures
       :type: str
 
       The crew member's role. Usually one of ``CP``, ``FO``, ``PU`` or ``FA``.
+
+.. class:: AllDayEvent
+
+   A NamedTuple representing an all day event.
+
+   .. attribute:: date
+      :type: datetime.date
+
+   The date of the all day duty.
+
+   .. attribute:: code
+      :type: str
+
+   The AIMS code for the all day duty.
