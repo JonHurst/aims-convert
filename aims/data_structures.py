@@ -27,7 +27,7 @@ class Sector(NamedTuple):
 
 class Duty(NamedTuple):
     start: dt.datetime
-    finish: Optional[dt.datetime]
+    finish: dt.datetime
     sectors: tuple[Sector, ...]
 
 
