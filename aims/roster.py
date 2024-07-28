@@ -188,6 +188,32 @@ def _duty(row: Row) -> Optional[Duty]:
         raise InputFileException(f"Bad Record: {str(row)}")
 
 
+_row_cache: tuple[Row, ...] = ()
+
+
+def _rows_from_soup(soup) -> tuple[Row, ...]:
+    global _row_cache
+    if _row_cache:
+        return _row_cache
+    rows = iter(soup.find_all("tr"))
+    try:
+        while "Schedule Details" not in next(rows).stripped_strings:
+            pass
+        next(rows)
+        retval: list[Row] = []
+        while True:
+            strings = tuple(
+                tuple(Y.replace("\xa0", " ") for Y in X.stripped_strings)
+                for X in next(rows)("td"))
+            if not strings[DATE]:  # line without date ends table
+                break
+            retval.append(strings)
+        _row_cache = tuple(retval)
+        return _row_cache
+    except (StopIteration, IndexError):
+        raise InputFileException("Duty table ended unexpectedly")
+
+
 def duties(soup) -> tuple[Duty, ...]:
     """Create a tuple of Duty objects from a BeautifulSoup of a roster.
 
@@ -207,22 +233,10 @@ def duties(soup) -> tuple[Duty, ...]:
     :return: A tuple of Duty objects encoding the roster in a standard form.
 
     """
-    rows = iter(soup.find_all("tr"))
-    try:
-        while "Schedule Details" not in next(rows).stripped_strings:
-            pass
-        next(rows)
-        retval: list[Duty] = []
-        while True:
-            strings = tuple(
-                tuple(Y.replace("\xa0", " ") for Y in X.stripped_strings)
-                for X in next(rows)("td"))
-            if not strings[DATE]:  # line without date ends table
-                break
-            if duty := _duty(strings):
-                retval.append(duty)
-    except (StopIteration, IndexError):
-        raise InputFileException("Duty table ended unexpectedly")
+    retval: list[Duty] = []
+    for row in _rows_from_soup(soup):
+        if duty := _duty(row):
+            retval.append(duty)
     return tuple(retval)
 
 
@@ -231,19 +245,5 @@ def _ade(row: Row) -> AllDayEvent:
 
 
 def all_day_events(soup) -> tuple[AllDayEvent, ...]:
-    rows = iter(soup.find_all("tr"))
-    try:
-        while "Schedule Details" not in next(rows).stripped_strings:
-            pass
-        next(rows)
-        retval: list[AllDayEvent] = []
-        while True:
-            strings = tuple(tuple(X.stripped_strings)
-                            for X in next(rows)("td"))
-            if not strings[DATE]:  # line without date ends table
-                break
-            if strings[CODES] and not strings[TIMES]:
-                retval.append(_ade(strings))
-    except (StopIteration, IndexError):
-        raise InputFileException("Duty table ended unexpectedly")
-    return tuple(retval)
+    return tuple(_ade(row) for row in _rows_from_soup(soup)
+                 if row[CODES] and not row[TIMES])
