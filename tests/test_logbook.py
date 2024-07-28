@@ -22,7 +22,6 @@ class TestDuty(unittest.TestCase):
                    quasi=False, position=False,
                    crew=(CrewMember("TEST-2", "CP"), )))
         expected = Duty(
-            code=None,
             start=datetime.datetime(2022, 7, 23, 10, 44),
             finish=datetime.datetime(2022, 7, 23, 18, 11),
             sectors=(Sector(name='6053', reg='G-EZRY', type_='320',

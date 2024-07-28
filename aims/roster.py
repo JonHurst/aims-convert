@@ -161,15 +161,11 @@ def _duty(row: Row) -> Optional[Duty]:
 
     """
     try:
-        if not row[CODES]:
+        if not row[CODES] or not row[TIMES]:
             return None
         date = _convert_datestring(row[DATE][0])
-        # if there are no times, it is an all day event
-        if not row[TIMES]:
-            return Duty(row[CODES][0],
-                        dt.datetime.combine(date, dt.time()),
-                        None, ())
         if row[DSTART]:
+            assert row[DEND]
             start = _convert_timestring(row[DSTART][0], date)
             end = _convert_timestring(row[DEND][0], date)
         else:
@@ -186,7 +182,7 @@ def _duty(row: Row) -> Optional[Duty]:
                 break
             start = min(start, sector.off)
             end = max(end, sector.on)
-        return Duty(None, start, end, sectors)
+        return Duty(start, end, sectors)
     except (IndexError, ValueError):
         raise InputFileException(f"Bad Record: {str(row)}")
 

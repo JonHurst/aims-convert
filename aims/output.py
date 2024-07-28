@@ -277,14 +277,14 @@ def ical(duties: tuple[Duty, ...], do_ade) -> str:
         if duty.finish:
             d = _build_dict(duty)
             events.append(vevent.format(**d))
-        elif do_ade:
-            date = duty.start.date()
-            uid = "{}{}@HURSTS.ORG.UK".format(
-                date.isoformat(), duty.code)
-            modified = ical_datetime.format(dt.datetime.utcnow())
-            events.append(advevent.format(
-                day=date,
-                ev=duty.code,
-                modified=modified,
-                uid=uid))
+        # elif do_ade:
+        #     date = duty.start.date()
+        #     uid = "{}{}@HURSTS.ORG.UK".format(
+        #         date.isoformat(), duty.code)
+        #     modified = ical_datetime.format(dt.datetime.utcnow())
+        #     events.append(advevent.format(
+        #         day=date,
+        #         ev=duty.code,
+        #         modified=modified,
+        #         uid=uid))
     return vcalendar.format("\r\n".join(events))

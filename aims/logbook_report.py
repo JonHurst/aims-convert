@@ -30,8 +30,7 @@ def _sector(row: tuple[str, ...]) -> Optional[Sector]:
 def _duty(sectors: tuple[Sector, ...]) -> Duty:
     lowest_off = min([X.off for X in sectors])
     highest_on = max([X.on for X in sectors])
-    return Duty(None,
-                lowest_off - dt.timedelta(hours=1),
+    return Duty(lowest_off - dt.timedelta(hours=1),
                 highest_on + dt.timedelta(minutes=30),
                 sectors)
 

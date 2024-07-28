@@ -34,7 +34,6 @@ class Test_duty(unittest.TestCase):
                ('11:01',),
                (), crew, ())
         expected = Duty(
-            code=None,
             start=datetime.datetime(2023, 6, 2, 5, 0),
             finish=datetime.datetime(2023, 6, 2, 16, 1),
             sectors=(
@@ -67,10 +66,7 @@ class Test_duty(unittest.TestCase):
                ('D/O',),
                ('Day off',),
                (), (), (), (), (), (), (), ())
-        expected = Duty(code='D/O',
-                        start=datetime.datetime(2023, 6, 4, 0, 0),
-                        finish=None, sectors=())
-        self.assertEqual(roster._duty(src), expected)
+        self.assertEqual(roster._duty(src), None)
 
     def test_loe(self):
         src = (
@@ -89,8 +85,7 @@ class Test_duty(unittest.TestCase):
              (), ('10:30',), (), ('CP - PAX - 0000 - CAPTAIN THE',),
              ()))
         expected = (
-            Duty(code=None,
-                 start=datetime.datetime(2023, 6, 19, 14, 30),
+            Duty(start=datetime.datetime(2023, 6, 19, 14, 30),
                  finish=datetime.datetime(2023, 6, 19, 18, 0),
                  sectors=(
                      Sector(name='TAXI227', reg=None, type_=None,
@@ -98,8 +93,7 @@ class Test_duty(unittest.TestCase):
                             off=datetime.datetime(2023, 6, 19, 14, 30),
                             on=datetime.datetime(2023, 6, 19, 18, 0),
                             quasi=True, position=True, crew=()),)),
-            Duty(code=None,
-                 start=datetime.datetime(2023, 6, 20, 12, 0),
+            Duty(start=datetime.datetime(2023, 6, 20, 12, 0),
                  finish=datetime.datetime(2023, 6, 20, 18, 30),
                  sectors=(
                      Sector(name='LOE', reg=None, type_=None,
@@ -107,7 +101,7 @@ class Test_duty(unittest.TestCase):
                             off=datetime.datetime(2023, 6, 20, 13, 30),
                             on=datetime.datetime(2023, 6, 20, 17, 30),
                             quasi=True, position=False, crew=()),)),
-            Duty(code=None, start=datetime.datetime(2023, 6, 21, 8, 0),
+            Duty(start=datetime.datetime(2023, 6, 21, 8, 0),
                  finish=datetime.datetime(2023, 6, 21, 18, 30),
                  sectors=(
                      Sector(name='FFST', reg=None, type_=None,
@@ -129,8 +123,7 @@ class Test_duty(unittest.TestCase):
                (),  ('05:15 - 13:15',),  (),
                (),  ('08:00',),
                (),  (),  ())
-        expected = Duty(code=None,
-                        start=datetime.datetime(2024, 7, 25, 5, 15),
+        expected = Duty(start=datetime.datetime(2024, 7, 25, 5, 15),
                         finish=datetime.datetime(2024, 7, 25, 13, 15),
                         sectors=(
                             Sector(name='ESBY', reg=None, type_=None,
@@ -149,8 +142,7 @@ class Test_duty(unittest.TestCase):
                ('11:45 - 13:20', '13:20 - 14:00',
                 'A16:14 - A17:23', 'A17:56 - A18:56'),
                ('19:26',),  ('02:09',),  ('07:41',),  (),  crew, ())
-        expected = Duty(code=None,
-                        start=datetime.datetime(2023, 7, 2, 11, 45),
+        expected = Duty(start=datetime.datetime(2023, 7, 2, 11, 45),
                         finish=datetime.datetime(2023, 7, 2, 19, 26),
                         sectors=(
                             Sector(name='LSBY', reg=None, type_=None,
@@ -189,8 +181,7 @@ class Test_duty(unittest.TestCase):
                 'A19:21 - A21:56', 'A22:33 - A00:57⁺¹/00:24'),
                ('01:27⁺¹',), ('07:08',), ('11:27',), ('M',),
                crew, ())
-        expected = Duty(code=None,
-                        start=datetime.datetime(2023, 6, 25, 14, 0),
+        expected = Duty(start=datetime.datetime(2023, 6, 25, 14, 0),
                         finish=datetime.datetime(2023, 6, 26, 1, 27),
                         sectors=(
                             Sector(name='239', reg=None, type_='320',
@@ -232,8 +223,11 @@ class Test_duty(unittest.TestCase):
 
     def test_bad_date(self):
         with self.assertRaises(InputFileException):
-            roster._duty(((), ('31/06/2023 Sun',), ('D/O',),
-                          ('Day off',), (), (), (), (), (), (), (), ()))
+            roster._duty(((), ('32/07/2024 Thu',),
+                          ('ESBY',), ('Early Standby',),
+                          (),  ('24:00 - 13:15',),  (),
+                          (),  ('08:00',),
+                          (),  (),  ()))
 
     def test_bad_time(self):
         with self.assertRaises(InputFileException):

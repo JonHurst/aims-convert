@@ -13,7 +13,6 @@ crew = (
 
 
 standard_duty = Duty(
-    code=None,
     start=datetime.datetime(2023, 6, 2, 5, 0),
     finish=datetime.datetime(2023, 6, 2, 16, 1),
     sectors=(
@@ -39,14 +38,7 @@ standard_duty = Duty(
                quasi=False, position=False, crew=crew)))
 
 
-all_day_duty = Duty(
-    code='D/O',
-    start=datetime.datetime(2023, 6, 4, 0, 0),
-    finish=None, sectors=())
-
-
 standby_duty = Duty(
-    code=None,
     start=datetime.datetime(2024, 7, 25, 5, 15),
     finish=datetime.datetime(2024, 7, 25, 13, 15),
     sectors=(
@@ -58,7 +50,6 @@ standby_duty = Duty(
 
 
 standby_before_flight = Duty(
-    code=None,
     start=datetime.datetime(2023, 7, 2, 11, 45),
     finish=datetime.datetime(2023, 7, 2, 19, 26),
     sectors=(
@@ -89,7 +80,6 @@ standby_before_flight = Duty(
 
 
 loe_day1 = Duty(
-    code=None,
     start=datetime.datetime(2023, 6, 19, 14, 30),
     finish=datetime.datetime(2023, 6, 19, 18, 0),
     sectors=(
@@ -101,7 +91,6 @@ loe_day1 = Duty(
 
 
 loe_day2 = Duty(
-    code=None,
     start=datetime.datetime(2023, 6, 20, 12, 0),
     finish=datetime.datetime(2023, 6, 20, 18, 30),
     sectors=(
@@ -113,7 +102,6 @@ loe_day2 = Duty(
 
 
 loe_day3 = Duty(
-    code=None,
     start=datetime.datetime(2023, 6, 21, 8, 0),
     finish=datetime.datetime(2023, 6, 21, 18, 30),
     sectors=(
@@ -133,7 +121,7 @@ class TestRoster(unittest.TestCase):
 
     def test_standard(self):
         self.assertEqual(
-            roster((standard_duty, all_day_duty, standby_duty)),
+            roster((standard_duty, standby_duty)),
             "02/06/2023 06:00-17:01 BRS-LIS-BRS-NCL-BRS 7:02/11:01\n"
             "25/07/2024 06:15-14:15 ESBY 0:00/8:00")
 
@@ -164,7 +152,7 @@ class TestEFJ(unittest.TestCase):
 
     def test_standard(self):
         self.assertEqual(
-            efj((standard_duty, all_day_duty, standby_duty)),
+            efj((standard_duty, standby_duty)),
             "2023-06-02\n"
             "0500/1601\n"
             "{ CP:Captain The, FO:Fo The, PU:Pu The, FA:Fa A }\n"
