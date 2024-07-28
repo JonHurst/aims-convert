@@ -8,7 +8,8 @@ import datetime as dt
 import re
 from typing import Optional
 
-from aims.data_structures import Duty, Sector, CrewMember, InputFileException
+from aims.data_structures import (
+    Duty, Sector, CrewMember, AllDayEvent, InputFileException)
 
 
 Row = tuple[tuple[str, ...], ...]
@@ -220,6 +221,29 @@ def duties(soup) -> tuple[Duty, ...]:
                 break
             if duty := _duty(strings):
                 retval.append(duty)
+    except (StopIteration, IndexError):
+        raise InputFileException("Duty table ended unexpectedly")
+    return tuple(retval)
+
+
+def _ade(row: Row) -> AllDayEvent:
+    return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
+
+
+def all_day_events(soup) -> tuple[AllDayEvent, ...]:
+    rows = iter(soup.find_all("tr"))
+    try:
+        while "Schedule Details" not in next(rows).stripped_strings:
+            pass
+        next(rows)
+        retval: list[AllDayEvent] = []
+        while True:
+            strings = tuple(tuple(X.stripped_strings)
+                            for X in next(rows)("td"))
+            if not strings[DATE]:  # line without date ends table
+                break
+            if strings[CODES] and not strings[TIMES]:
+                retval.append(_ade(strings))
     except (StopIteration, IndexError):
         raise InputFileException("Duty table ended unexpectedly")
     return tuple(retval)

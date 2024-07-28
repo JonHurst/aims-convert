@@ -3,7 +3,7 @@ import datetime
 
 import aims.roster as roster
 from aims.data_structures import (
-    Duty, Sector, CrewMember, InputFileException
+    Duty, Sector, CrewMember, AllDayEvent, InputFileException
 )
 
 crew = ('CP - 0000 - CAPTAIN THE',
@@ -236,3 +236,15 @@ class Test_duty(unittest.TestCase):
                           (),  ('24:00 - 13:15',),  (),
                           (),  ('08:00',),
                           (),  (),  ()))
+
+
+class Test_ade(unittest.TestCase):
+
+    def test_simple(self):
+        src = ((),
+               ('04/06/2023 Sun',),
+               ('D/O',),
+               ('Day off',),
+               (), (), (), (), (), (), (), ())
+        self.assertEqual(roster._ade(src),
+                         AllDayEvent(datetime.date(2023, 6, 4), "D/O"))

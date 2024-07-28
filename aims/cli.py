@@ -19,7 +19,7 @@ def _args():
 
 def main() -> int:
     args = _args()
-    duties = parse(sys.stdin.read())
+    duties, ade = parse(sys.stdin.read())
     if args.format == "roster":
         print(output.roster(duties))
     elif args.format == "efj":
@@ -27,7 +27,9 @@ def main() -> int:
     elif args.format == "csv":
         print(output.csv(duties))
     elif args.format == "ical":
-        print(output.ical(duties, args.ade))
+        if not args.ade:
+            ade = ()
+        print(output.ical(duties, ade))
     return 0
 
 

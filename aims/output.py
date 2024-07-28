@@ -7,7 +7,7 @@ import datetime as dt
 import re
 import itertools
 
-from aims.data_structures import Duty, Sector, CrewMember
+from aims.data_structures import Duty, Sector, CrewMember, AllDayEvent
 import nightflight.night as nightcalc  # type: ignore
 from nightflight.airport_nvecs import airfields as nvecs  # type: ignore
 
@@ -271,20 +271,18 @@ def _build_dict(duty: Duty) -> dict[str, str]:
     return event
 
 
-def ical(duties: tuple[Duty, ...], do_ade) -> str:
+def ical(duties: tuple[Duty, ...], ade: tuple[AllDayEvent, ...]) -> str:
     events = []
     for duty in duties:
-        if duty.finish:
-            d = _build_dict(duty)
-            events.append(vevent.format(**d))
-        # elif do_ade:
-        #     date = duty.start.date()
-        #     uid = "{}{}@HURSTS.ORG.UK".format(
-        #         date.isoformat(), duty.code)
-        #     modified = ical_datetime.format(dt.datetime.utcnow())
-        #     events.append(advevent.format(
-        #         day=date,
-        #         ev=duty.code,
-        #         modified=modified,
-        #         uid=uid))
+        d = _build_dict(duty)
+        events.append(vevent.format(**d))
+    for e in ade:
+        uid = "{}{}@HURSTS.ORG.UK".format(
+            e.date.isoformat(), e.code)
+        modified = ical_datetime.format(dt.datetime.utcnow())
+        events.append(advevent.format(
+                day=e.date,
+                ev=e.code,
+                modified=modified,
+                uid=uid))
     return vcalendar.format("\r\n".join(events))
