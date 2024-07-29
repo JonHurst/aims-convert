@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     format = data["format"]
     options = data["options"]
     try:
-        duties = parse(in_)
+        duties, ade = parse(in_)
         if format == "csv":
             out = output.csv(duties)
         elif format == "roster":
@@ -19,7 +19,7 @@ def lambda_handler(event, context):
         elif format == "efj":
             out = output.efj(duties)
         elif format == "ical":
-            out = output.ical(duties, "ade" in options)
+            out = output.ical(duties, ade if "ade" in options else ())
         else:
             out = "Not implemented"
     except RosterException as e:
