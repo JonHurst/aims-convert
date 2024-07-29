@@ -4,6 +4,7 @@ import glob
 
 import aims.parse
 import aims.output
+from aims.data_structures import InputFileException
 
 
 @freeze_time("2024-01-01")
@@ -26,3 +27,8 @@ class Test_compound(unittest.TestCase):
             with open(f + ".efj") as efj_file:
                 self.assertEqual(efj_file.read(),
                                  aims.output.efj(duties) + "\n")
+
+    def test_bad_file(self):
+        with open("files/README") as f:
+            with self.assertRaises(InputFileException):
+                aims.parse.parse(f.read())
