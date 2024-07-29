@@ -6,7 +6,6 @@ produced by processing the roster with BeautifulSoup.
 
 import datetime as dt
 import re
-from typing import Optional
 
 from bs4 import BeautifulSoup  # type: ignore
 
@@ -99,7 +98,7 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     return tuple(retval)
 
 
-def _duty(row: Row) -> Optional[Duty]:
+def _duty(row: Row) -> Duty:
     """Creates a Duty object from a structured representation of an HTML row.
 
     The input object is a 12 cell tuple with each cell containing the contents
@@ -164,8 +163,7 @@ def _duty(row: Row) -> Optional[Duty]:
 
     """
     try:
-        if not row[CODES] or not row[TIMES]:
-            return None
+        assert row[CODES] and row[TIMES]
         date = _convert_datestring(row[DATE][0])
         if row[DSTART]:
             assert row[DEND]
@@ -187,11 +185,14 @@ def _duty(row: Row) -> Optional[Duty]:
             end = max(end, sector.on)
         return Duty(start, end, sectors)
     except (IndexError, ValueError):
-        raise InputFileException(f"Bad Record: {str(row)}")
+        raise InputFileException(f"Bad Duty Record: {str(row)}")
 
 
 def _ade(row: Row) -> AllDayEvent:
-    return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
+    try:
+        return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
+    except (IndexError, ValueError):
+        raise InputFileException(f"Bad All Day Duty Record: {str(row)}")
 
 
 def duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:

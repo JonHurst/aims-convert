@@ -60,14 +60,6 @@ class Test_duty(unittest.TestCase):
             )
         self.assertEqual(roster._duty(src), expected)
 
-    def test_all_day_event(self):
-        src = ((),
-               ('04/06/2023 Sun',),
-               ('D/O',),
-               ('Day off',),
-               (), (), (), (), (), (), (), ())
-        self.assertEqual(roster._duty(src), None)
-
     def test_loe(self):
         src = (
             ((), ('19/06/2023', 'Mon'),
@@ -210,10 +202,6 @@ class Test_duty(unittest.TestCase):
                                    crew=crew_result))
                         )
         self.assertEqual(roster._duty(src), expected)
-
-    def test_not_published(self):
-        src = ((), ('01/08/2024 Thu',), (), (), (), (), (), (), (), ('D',), ())
-        self.assertEqual(roster._duty(src), None)
 
     def test_emptyrow(self):
         with self.assertRaises(InputFileException):
