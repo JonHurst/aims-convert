@@ -4,34 +4,29 @@ Processing Functions
 
 .. currentmodule:: aims.roster
 
-.. function:: duties(soup) -> tuple[Duty, ...]
+.. function:: duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]
 
-   Create a tuple of :class:`aims.data_structures.Duty` extracted from a
-   vertical AIMS Crew Schedule.
+   Produces a tuple of :class:`aims.data_structures.Duty` objects and a tuple of
+   :class:`aims.data_structures.AllDayEvent` objects from the html of a vertical
+   AIMS Crew Schedule.
 
-   :param soup: The soup of the Crew Schedule, as created by parsing the html with
-                BeautifulSoup4.
-   :return: A tuple of :class:`aims.data_structures.Duty` objects.
-
-.. function:: all_day_events(soup) -> tuple[AllDayEvent, ...]
-
-   Create a tuple of :class:`aims.data_structures.AllDayEvent` objects extracted
-   from an vertical AIMS Crew Schedule.
-
-   :param soup: The soup of the Crew Schedule, as created by parsing the html with
-                BeautifulSoup4.
-   :return: A tuple of :class:`aims.data_structures.AllDayEvent` objects.
+   :param html: The HTML of a vertical AIMS crew schedule
+   :return: A tuple consisting of a tuple of :class:`aims.data_structures.Duty`
+            objects and a tuple of :class:`aims.data_structures.AllDayEvent`
+            objects.
 
 .. currentmodule:: aims.logbook_report
 
-.. function:: duties(soup) -> tuple[Duty, ...]
+.. function:: duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]
 
-   Create a tuple of :class:`aims.data_structures.Duty` extracted from an
+   Produce a tuple of :class:`aims.data_structures.Duty` from an the html of an
    AIMS Pilot Logbook report.
 
-   :param soup: The soup of the report, as created by parsing the html with
-                     BeautifulSoup4.
-   :return: A tuple of :class:`aims.data_structures.Duty` objects.
+   :param html: The HTML of an AIMS Pilot Logbook report.
+   :return: A tuple consisting of a tuple of :class:`aims.data_structures.Duty`
+            objects and an empty tuple. The empty tuple is due to maintaining
+            the same function signature as :func:`aims.roster.duties` and there
+            being no all day events recorded in the Logbook report
 
 .. currentmodule:: aims.parse
 

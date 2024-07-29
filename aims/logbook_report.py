@@ -2,7 +2,9 @@ import datetime as dt
 import re
 from typing import Optional
 
-from aims.data_structures import Duty, Sector, CrewMember
+from bs4 import BeautifulSoup  # type: ignore
+
+from aims.data_structures import Duty, Sector, CrewMember, AllDayEvent
 
 
 DATE, FLTNUM, FROM, OFF, TO, ON, TYPE, REG, BLOCK, CP = range(1, 11)
@@ -35,7 +37,8 @@ def _duty(sectors: tuple[Sector, ...]) -> Duty:
                 sectors)
 
 
-def duties(soup) -> tuple[Duty, ...]:
+def duties(html) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
+    soup = BeautifulSoup(html, "html5lib")
     sectors: list[Sector] = []
     re_date = re.compile(r"^\d{2}/\d{2}/\d{2}$")
     for row in soup.find_all("tr"):
@@ -53,4 +56,4 @@ def duties(soup) -> tuple[Duty, ...]:
         else:
             groups[-1].append(sector)
         last_on = sector.on
-    return tuple(_duty(tuple(X)) for X in groups)
+    return (tuple(_duty(tuple(X)) for X in groups), ())

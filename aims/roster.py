@@ -8,6 +8,8 @@ import datetime as dt
 import re
 from typing import Optional
 
+from bs4 import BeautifulSoup  # type: ignore
+
 from aims.data_structures import (
     Duty, Sector, CrewMember, AllDayEvent, InputFileException)
 
@@ -188,39 +190,18 @@ def _duty(row: Row) -> Optional[Duty]:
         raise InputFileException(f"Bad Record: {str(row)}")
 
 
-_row_cache: tuple[Row, ...] = ()
+def _ade(row: Row) -> AllDayEvent:
+    return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
 
 
-def _rows_from_soup(soup) -> tuple[Row, ...]:
-    global _row_cache
-    if _row_cache:
-        return _row_cache
-    rows = iter(soup.find_all("tr"))
-    try:
-        while "Schedule Details" not in next(rows).stripped_strings:
-            pass
-        next(rows)
-        retval: list[Row] = []
-        while True:
-            strings = tuple(
-                tuple(Y.replace("\xa0", " ") for Y in X.stripped_strings)
-                for X in next(rows)("td"))
-            if not strings[DATE]:  # line without date ends table
-                break
-            retval.append(strings)
-        _row_cache = tuple(retval)
-        return _row_cache
-    except (StopIteration, IndexError):
-        raise InputFileException("Duty table ended unexpectedly")
-
-
-def duties(soup) -> tuple[Duty, ...]:
-    """Create a tuple of Duty objects from a BeautifulSoup of a roster.
+def duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
+    """Extract the data from an AIMS vertical roster.
 
     The entire document is a single table (how retro!). The interesting part
     starts with the row two rows below the row with a cell containing the
     phrase "Schedule Details" and ends with the row above the first row with a
-    blank date field. Each row between these represents a single duty.
+    blank date field. Each row between these represents a single duty or an all
+    dat event.
 
     The date to the left of each row is the date that the duty started on. If
     duties continue past midnight, relevant times are marked with a superscript
@@ -228,22 +209,30 @@ def duties(soup) -> tuple[Duty, ...]:
     vertical roster much saner to parse than the alternatives since there are
     no concerns about missing data at the start and end of the roster period.
 
-    :param soup: The soup of a 'vertical' HTML AIMS roster, as produced by
-               processing the HTML with BeautifulSoup.
-    :return: A tuple of Duty objects encoding the roster in a standard form.
+    :param html: The html of a 'vertical' HTML AIMS roster.
+    :return: A tuple of Duty objects and a tuple of AllDayEvent objects
 
     """
-    retval: list[Duty] = []
-    for row in _rows_from_soup(soup):
-        if duty := _duty(row):
-            retval.append(duty)
-    return tuple(retval)
-
-
-def _ade(row: Row) -> AllDayEvent:
-    return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
-
-
-def all_day_events(soup) -> tuple[AllDayEvent, ...]:
-    return tuple(_ade(row) for row in _rows_from_soup(soup)
-                 if row[CODES] and not row[TIMES])
+    soup = BeautifulSoup(html, "html5lib")
+    rows = iter(soup.find_all("tr"))
+    try:
+        while "Schedule Details" not in next(rows).stripped_strings:
+            pass
+        next(rows)
+        duty_list: list[Duty] = []
+        ade_list: list[AllDayEvent] = []
+        while True:
+            row: Row = tuple(
+                tuple(Y.replace("\xa0", " ") for Y in X.stripped_strings)
+                for X in next(rows)("td"))
+            if not row[DATE]:  # line without date ends table
+                break
+            if not row[CODES]:  # unpublished duty
+                continue
+            if not row[TIMES]:  # an all day event
+                ade_list.append(_ade(row))
+            elif duty := _duty(row):  # a normal duty
+                duty_list.append(duty)
+        return (tuple(duty_list), tuple(ade_list))
+    except (StopIteration, IndexError):
+        raise InputFileException("Duty table ended unexpectedly")

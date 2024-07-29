@@ -40,7 +40,7 @@ Output Functions
    :return: Text in Excel flavoured CSV format.
 
 
-.. function:: roster(duties: tuple[Sector, ...]) -> str
+.. function:: roster(duties: tuple[Duty, ...]) -> str
 
    Transform to text format suitable for emacs diary and FTL prediction, with
    times in UK local.
