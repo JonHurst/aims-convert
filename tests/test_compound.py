@@ -10,7 +10,7 @@ import aims.output
 class Test_compound(unittest.TestCase):
 
     def test_compound(self):
-        for f in glob.glob("files/*.htm?"):
+        for f in glob.glob("files/*.htm"):
             with open(f) as input_:
                 duties, ade = aims.parse.parse(input_.read())
             with open(f + ".txt") as roster_file:

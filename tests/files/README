@@ -4,6 +4,7 @@ version controlled as they contain information that should not be made public.
 To add a test file:
 
 1. Add a downloaded HTML AIMS logbook file or HTML AIMS veritcal crew schedule
+with the suffix .htm
 2. Add the required roster output as a file named XXXXXX.txt where XXXXXX
 represents the full original filename, i.e. if the original file was named
 myroster.htm, this one should be named myroster.htm.txt.
