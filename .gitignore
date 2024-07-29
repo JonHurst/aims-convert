@@ -6,3 +6,8 @@ venv
 _build
 aims_convert.egg-info
 dist
+tests/files/*.htm?
+tests/files/*.csv
+tests/files/*.efj
+tests/files/*.txt
+tests/files/*.ical

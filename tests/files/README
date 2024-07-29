@@ -1,0 +1,13 @@
+This directory is for compound test files. The test files themselves are not
+version controlled as they contain information that should not be made public.
+
+To add a test file:
+
+1. Add a downloaded HTML AIMS logbook file or HTML AIMS veritcal crew schedule
+2. Add the required roster output as a file named XXXXXX.txt where XXXXXX
+represents the full original filename, i.e. if the original file was named
+myroster.htm, this one should be named myroster.htm.txt.
+3. Similarly add required csv, ical and efj output as XXXXXX.csv, XXXXXX.ical
+and XXXXXX.efj respectively.
+4. Update DSTAMP and LAST-MODIFIED fields of ical to 20240101T000000Z (these
+are calculated at creation time, so tests use freezegun for consistency)
