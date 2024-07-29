@@ -1,0 +1,20 @@
+1. Update setup.py with new version number
+2. Build new release:
+   > python -m build
+3. Upload new build to pypi
+   > python -m twine upload dist/*
+4. Build documentation
+   > cd docs
+   > make html
+5. Copy new documents to hursts.org.uk/aimsdocs
+6. Make standalone executables
+   > cd ..
+   > ./make-shiv.sh
+   > mv aims.py aimsgui.pyw ${SHIV_DIR}
+7. Deploy to AWS lambda
+   > ./deploy.sh
+8. Add tag and upload to git
+   > git tag -m "version x.x" vx.x
+   > git push --tags
+9. Test hursts.org.uk/aims
+10. Download and test aimsgui.pyw
