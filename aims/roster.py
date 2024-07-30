@@ -88,10 +88,12 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     The final string in the series may also have a delay of the form "/00:10"
     appended to it.
 
-    The CREW field contains the crew for the entire duty. There is no way of
-    discerning which crewmembers operated which sectors, although this is not
-    usually a huge problem -- crew changes during a duty are not particularly
-    common. It can be assumed that quasi sectors have no crew.
+    The CREW field contains the crew for the entire duty. It is described in
+    the docstring of the _crew function. There is no way of discerning which
+    crewmembers operated which sectors, although this is not usually a huge
+    problem -- crew changes during a duty are not particularly common, and
+    including the full set for every sector makes it easy to manually adjust
+    the output if required. It can be assumed that quasi sectors have no crew.
 
     :param data: A Row representing a single duty. It is assumed that Row
         structures representing all day events are not passed to this function.
@@ -131,64 +133,38 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
 def _duty(row: Row) -> Duty:
     """Creates a Duty object from a structured representation of an HTML row.
 
-    The input object is a 12 cell tuple with each cell containing the contents
-    of a "td" from the original HTML row. The contents are in the form of a
-    variable length tuple of strings since the original contents of the cells
-    can be multi-line. The first and last items are empty tuples since the
-    original table has empty cells at the beginning and end of each row.
+    The input object is a variable length tuple with each cell containing the
+    contents of a "td" from the original HTML row in the form of a variable
+    length tuple of strings; this is a result of the original contents of the
+    cells potentially being multi-line.
 
-    The items in the row, from index 1 to index 10 are:
+    The cells in the row, from index 1 to index 10 are:
 
-    1: Date of the form "01/01/2000 Mon", which may be split over two lines at
-       the space.
+    1: DATE: Date of the form "01/01/2000 Mon", which may be split over two
+       lines at the space.
 
-    2: Either:
+    2: CODES: Described in the docstring of the _sectors function.
 
-       + An empty tuple for an unpublished duty; or
+    3: DETAILS: Described in the docstring of the _sectors function.
 
-       + For all day duties, the code for the all day duty; or
-
-       + For normal sectors, the flight number plus aircraft type in square
-         brackets e.g. "1234 [320]", one for each sector in the duty; or
-
-       + For quasi sectors, the code of the quasi sector (e.g. "ESBY", "ADTY",
-         "TAXI123"), one for each quasi sector in the duty. These can be mixed
-         in with normal sectors.
-
-    3: Either:
-
-       + For all day duties, a textual description of the duty; or
-
-       + For sectors, the airports invloved in the form "BRS - FNC", one for
-         each sector or quasi sector in the duty. For quasi sectors the two
-         airports may be the same (e.g. "LGW - LGW" for a sim) or, to indicate
-         postioning, may start with a "*" (e.g "*LGW - BRS" for a taxi ride).
-
-    4: Report time. This is not necessarily duty start time -- there may be
-       standby duties before report, and it is empty for standbys without a
+    4: DSTART: Report time. This is not necessarily duty start time -- there
+       may be standby duties etc. before report. Empty for standbys without a
        call out.
 
-    5: Sector times of the form "11:00 - 13:00", one for each sector in the
-       duty, including for quasi sectors. For duties that have already taken
-       place, the fact that the times are actual times may be indicated with an
-       "A", giving the form "A11:00 - A13:00", although this doesn't seem to be
-       especially consistently done. The string for the last sector may also
-       incorporate the delay in the form "A11:00 - A13:00/01:00". For an all
-       day duty there are no times to record, and hence the cell will be an
-       empty tuple.
+    5: TIMES: Described in the docstring of the _sectors function.
 
-    6: Duty end time. Empty for standby without callout.
+    6: DEND: Duty end time. Empty for standby without callout.
 
-    7: Block hours
+    7: BHR: Block hours
 
-    8: Duty hours
+    8: DHR: Duty hours
 
-    9: Markers for memos etc.
+    9: IND: Markers for memos etc.
 
-    10: Crew list, one string per crew member. The crew is associated with the
-        entire duty rather than per sector.
+    10: CREW: Described in the docstring of the _crew function.
 
-    :param row: A 12 cell tuple, with each cell a tuple of strings.
+    :param row: A variable length tuple that has filled CODES and TIMES fields.
+        Each cell a tuple of strings, one per line of the original <td>.
     :return: The Duty object represented by the row.
 
     """
@@ -214,11 +190,23 @@ def _duty(row: Row) -> Duty:
             start = min(start, sector.off)
             end = max(end, sector.on)
         return Duty(start, end, sectors)
+
     except (IndexError, ValueError):
         raise InputFileException(f"Bad Duty Record: {str(row)}")
 
 
 def _ade(row: Row) -> AllDayEvent:
+    """Extract an all day event.
+
+    All fields other than the DATE, CODES and DETAILS are empty for all day
+    events. The DETAILS field is just a textual description, and the CODES
+    field should only have one line.
+
+    :param row: A variable length tuple with a tuple containing a single string
+        in the CODES field.
+    :return: An AllDayEvent object extracted from the row.
+
+    """
     try:
         return AllDayEvent(_convert_datestring(row[DATE][0]), row[CODES][0])
     except (IndexError, ValueError):
@@ -230,15 +218,21 @@ def duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
 
     The entire document is a single table (how retro!). The interesting part
     starts with the row two rows below the row with a cell containing the
-    phrase "Schedule Details" and ends with the row above the first row with a
-    blank date field. Each row between these represents a single duty or an all
-    dat event.
+    phrase "Schedule Details" and ends with the row above the first subsequent
+    row with a blank DATE field. Everything between, therefore, should have a
+    filled DATE field.
 
-    The date to the left of each row is the date that the duty started on. If
-    duties continue past midnight, relevant times are marked with a superscript
-    '+1' rather than being pushed to the next row of the table. This makes the
-    vertical roster much saner to parse than the alternatives since there are
-    no concerns about missing data at the start and end of the roster period.
+    Each row can represent:
+
+    1: An unpublished duty. The marker for this is an empty CODES field.
+
+    2: An all day event. The marker for this is a filled CODES field and an
+    empty TIMES field. These are described in the docsting of the _ade()
+    function.
+
+    3: A normal duty. If neither of the above are true, the row represents a
+    duty with a start and an end time. These are described in the docstring
+    of the _duty() function.
 
     :param html: The html of a 'vertical' HTML AIMS roster.
     :return: A tuple of Duty objects and a tuple of AllDayEvent objects
