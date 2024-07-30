@@ -66,6 +66,7 @@ def _crew(strings: tuple[str, ...]) -> tuple[CrewMember, ...]:
 
 def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     retval = []
+    crew = _crew(data[CREW])
     for c, code in enumerate(data[CODES]):
         code_split = code.split()
         name = code_split[0]
@@ -74,21 +75,17 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
             type_ = code_split[1][1:-1]
         airports = [X.strip() for X in data[DETAILS][c].split(" - ")]
         times = data[TIMES][c].split("/")[0].split(" - ")
-        crew = _crew(data[CREW])
         if len(airports) == 2:  # Not an all day event or unused standby
             position = False
             if airports[0][0] == "*":  # Either ground or air positioning
                 airports[0] = airports[0][1:]
                 position = True
-            quasi = False
-            if not type_:  # If no type in code, assume quasi sector
-                quasi = True
-                crew = ()
+            quasi = not type_  # If no type in code, assume quasi sector
             retval.append(
                 Sector(name, None, type_, airports[0], airports[1],
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date),
-                       quasi, position, tuple(crew)))
+                       quasi, position, () if quasi else crew))
         else:
             retval.append(
                 Sector(name, None, None, None, None,
