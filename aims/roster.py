@@ -65,6 +65,39 @@ def _crew(strings: tuple[str, ...]) -> tuple[CrewMember, ...]:
 
 
 def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
+    """Extract sector data from a row.
+
+    The CODES field contains a string for each flying sector or quasi sector.
+    For flying sectors the string is of the form "1234 [320]" where 1234 is the
+    flight number and 320 is the type. For quasi sectors, it is the sector code
+    such as "ADTY".
+
+    For each string in the CODES field there is an equivalent string with the
+    same index in the DETAILS and TIMES fields.
+
+    In the DETAILS field the strings are mainly airport pairs. These have the
+    form form "ABC - XYZ", where each is a 3 letter airport code. Where the
+    sector is a positioning sector, a "*" is prepended. Quasi sectors may have
+    the same airport in both halves of the pair, e.g. "LGW - LGW" for a sim.
+    Where the duty consists of a single quasi sector this field can instead
+    contain a textual description of the type of quasi sector.
+
+    In the TIMES field, the basic form is "13:00 - 14:00". Each half may also
+    be prepended with an "A" representing an "actual" time or an "E"
+    representing an "estimated" time, although this is not done consistently.
+    The final string in the series may also have a delay of the form "/00:10"
+    appended to it.
+
+    The CREW field contains the crew for the entire duty. There is no way of
+    discerning which crewmembers operated which sectors, although this is not
+    usually a huge problem -- crew changes during a duty are not particularly
+    common. It can be assumed that quasi sectors have no crew.
+
+    :param data: A Row representing a single duty. It is assumed that Row
+        structures representing all day events are not passed to this function.
+    :return: A tuple of Sector objects
+
+    """
     retval = []
     crew = _crew(data[CREW])
     for c, code in enumerate(data[CODES]):
