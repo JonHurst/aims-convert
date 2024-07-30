@@ -262,8 +262,8 @@ def duties(html: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
                 continue
             if not row[TIMES]:  # an all day event
                 ade_list.append(_ade(row))
-            elif duty := _duty(row):  # a normal duty
-                duty_list.append(duty)
+            else:  # a normal duty
+                duty_list.append(_duty(row))
         return (tuple(duty_list), tuple(ade_list))
     except (StopIteration, IndexError):
         raise InputFileException("Duty table ended unexpectedly")
