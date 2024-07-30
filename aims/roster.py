@@ -1,9 +1,4 @@
-"""Processes the data extracted from a 'vertical' HTML AIMS roster.
-
-The module's public interface is the duties() function, which accepts "soup" as
-produced by processing the roster with BeautifulSoup.
-"""
-
+"""Extracts data from a 'vertical' HTML AIMS roster."""
 import datetime as dt
 import re
 
