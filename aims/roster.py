@@ -95,6 +95,7 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
     :return: A tuple of Sector objects
 
     """
+    assert data[CODES] and data[TIMES] and data[DETAILS]
     retval = []
     crew = _crew(data[CREW])
     for c, code in enumerate(data[CODES]):
