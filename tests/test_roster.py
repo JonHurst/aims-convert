@@ -114,7 +114,7 @@ class Test_duty(unittest.TestCase):
                ('ESBY',), ('Early Standby',),
                (),  ('05:15 - 13:15',),  (),
                (),  ('08:00',),
-               (),  (),  ())
+               (),  crew,  ())
         expected = Duty(start=datetime.datetime(2024, 7, 25, 5, 15),
                         finish=datetime.datetime(2024, 7, 25, 13, 15),
                         sectors=(

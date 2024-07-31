@@ -106,7 +106,7 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
             type_ = code_split[1][1:-1]
         airports = [X.strip() for X in data[DETAILS][c].split(" - ")]
         times = data[TIMES][c].split("/")[0].split(" - ")
-        if len(airports) == 2:  # Not an all day event or unused standby
+        if len(airports) == 2:
             position = False
             if airports[0][0] == "*":  # Either ground or air positioning
                 airports[0] = airports[0][1:]
@@ -117,12 +117,12 @@ def _sectors(data: Row, date: dt.date) -> tuple[Sector, ...]:
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date),
                        quasi, position, () if quasi else crew))
-        else:
+        else:  # unused standby
             retval.append(
                 Sector(name, None, None, None, None,
                        _convert_timestring(times[0], date),
                        _convert_timestring(times[1], date),
-                       True, False, tuple(crew)))
+                       True, False, ()))
     return tuple(retval)
 
 
