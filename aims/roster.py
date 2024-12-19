@@ -173,10 +173,10 @@ def _duty(row: Row) -> Duty:
             end = _convert_timestring(row[DEND][0], date)
         else:
             # If duty start/finish does not exist, take the times from
-            # the only sector.
-            assert len(row[TIMES]) == 1
+            # the sectors.
             times = row[TIMES][0].split(" - ")
             start = _convert_timestring(times[0], date)
+            times = row[TIMES][-1].split(" - ")
             end = _convert_timestring(times[1], date)
         sectors = _sectors(row, date)
         # on duty can be before report if quasi sectors at start
