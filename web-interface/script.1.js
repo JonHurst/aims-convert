@@ -124,6 +124,9 @@ function main() {
     ID("help").addEventListener("click", () => window.open(
         "https://hursts.org.uk/aimsdocs/webapp.html", "_blank"));
     ID("efj").click();
+    const body = document.getElementsByTagName("body")[0];
+    body.addEventListener("drop", dropHandler);
+    body.addEventListener("dragover", dragoverHandler);
 }
 
 window.addEventListener("load", main);

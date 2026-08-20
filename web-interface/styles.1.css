@@ -110,6 +110,10 @@ fieldset legend {
     white-space: nowrap;
 }
 
+.rbutton {
+    text-wrap: nowrap;
+}
+
 @media (max-width: 35rem) {
     fieldset {
         width: 6rem;
