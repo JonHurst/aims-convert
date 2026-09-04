@@ -4,7 +4,9 @@ from csv import DictReader
 from aims.data_structures import Duty, Sector, CrewMember, AllDayEvent
 
 
-DATE, FLTNUM, FROM, OFF, TO, ON, TYPE, REG, BLOCK, CP = range(1, 11)
+HEADER = ("Date,Flight,DepPlace,DepTime,ArrPlace,ArrTime,ACType,Reg,"
+          "FltTime,PicName,TKoffsDay,TKoffsNight,LandsDay,LandsNight,"
+          "PIC,CoPlt,Instr,SimTime,SimType")
 
 
 def _sector(record: dict[str, str]) -> Sector:
@@ -40,6 +42,8 @@ def _duty(sectors: tuple[Sector, ...]) -> Duty:
 
 
 def duties(csv) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
+    if not csv.startswith(HEADER):
+        return ((), ())
     sectors: list[Sector] = []
     for record in DictReader(csv.splitlines()):
         if record["SimTime"]:
