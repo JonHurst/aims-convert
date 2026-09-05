@@ -301,13 +301,14 @@ class MainWindow(ttk.Frame):
             self.txt.delete('1.0', tk.END)
             messagebox.showerror("Error", str(e))
 
-    def __roster_html(self):
+    def __load_data(self):
         retval = ""
         path = self.settings.get('openPath')
         fn = filedialog.askopenfilename(
             filetypes=(
-                ("HTML file", "*.htm"),
-                ("HTML file", "*.html"),
+                ("AIMS file", "*.htm"),
+                ("AIMS file", "*.html"),
+                ("AIMS file", "*.csv"),
                 ("All", "*.*")),
             initialdir=path)
         if fn:
@@ -321,24 +322,24 @@ class MainWindow(ttk.Frame):
 
     def __csv(self):
         txt = ""
-        html = self.__roster_html()
-        if not html:
+        data = self.__load_data()
+        if not data:
             return
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Getting registration and type info...")
         self.txt.update()
 
-        duties, _ = aims.parse.parse(html)
+        duties, _ = aims.parse.parse(data)
         # note: normalise newlines for Text widget - will restore on output
         txt = csv(duties).replace("\r\n", "\n")
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'csv')
 
     def __ical(self):
-        html = self.__roster_html()
-        if not html:
+        data = self.__load_data()
+        if not data:
             return
-        duties, ade = aims.parse.parse(html)
+        duties, ade = aims.parse.parse(data)
         # note: normalise newlines for Text widget - will restore on output
         if not self.ms.with_ade.get():
             ade = ()
@@ -347,13 +348,13 @@ class MainWindow(ttk.Frame):
         self.txt.insert(tk.END, txt, 'ical')
 
     def __efj(self):
-        html = self.__roster_html()
-        if not html:
+        data = self.__load_data()
+        if not data:
             return
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, "Working…", 'efj')
         self.txt.update()
-        duties, _ = aims.parse.parse(html)
+        duties, _ = aims.parse.parse(data)
         txt = efj(duties)
         self.txt.delete('1.0', tk.END)
         self.txt.insert(tk.END, txt, 'efj')
