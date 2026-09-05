@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aims-convert",
-    version="2.3",
+    version="2.4",
     author="Jon Hurst",
     author_email="jon.a@hursts.org.uk",
     description="Extract useful information from AIMS",
@@ -14,7 +14,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     url="https://github.com/JonHurst/aims-convert",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Programming Language :: Python :: 3",
         ("License :: OSI Approved :: "
