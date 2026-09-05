@@ -13,9 +13,11 @@ def parse(in_: str) -> tuple[tuple[Duty, ...], tuple[AllDayEvent, ...]]:
     # check it's an html5 file
     html5_header = "<!DOCTYPE html><html>"
     if in_[:len(html5_header)] != html5_header:
-        raise InputFileException("HTML5 header not found.")
+        raise InputFileException("Input format not supported.")
     if in_.find("Personal&nbsp;Crew&nbsp;Schedule&nbsp;Report") != -1:
-        return aims.roster.duties(in_)
+        if in_.find("<nobr>Schedule&nbsp;Details</nobr>") != -1:
+            return aims.roster.duties(in_)
+        raise InputFileException("Horizontal Schedules not supported")
     elif in_.find("Pilot&nbsp;Logbook") != -1:
         return aims.logbook_report.duties(in_)
     else:
